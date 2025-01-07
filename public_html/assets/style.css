@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Vollkorn:ital,wght@0,400..900;1,400..900&family=Whisper&family=WindSong:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Vollkorn:ital,wght@0,400..900;1,400..900&family=Whisper&family=WindSong:wght@400;500&family=Playwrite+IS:wght@100..400&display=swap");
 
 /* Custom Fonts */
 
@@ -23,6 +23,13 @@
 
 .afacad {
   font-family: "Afacad", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+.playwrite {
+  font-family: "Playwrite IS", serif;
   font-optical-sizing: auto;
   font-weight: <weight>;
   font-style: normal;

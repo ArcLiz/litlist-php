@@ -17,7 +17,7 @@
 
 </head>
 
-<body class="overflow-x-hidden">
+<body class="flex flex-col min-h-screen overflow-x-hidden">
     <!-- Navigation -->
     <header class="bg-neutral-900 text-white">
         <nav class="md:container mx-auto p-2 flex items-center">

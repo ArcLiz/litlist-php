@@ -36,7 +36,7 @@ include '../components/header.php';
 ?>
 
 <main
-    class="grow w-screen min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
+    class="grow w-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
     <!-- Profile Card -->
     <div class="mx-auto container">
         <div id="swap-container"
