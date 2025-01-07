@@ -17,8 +17,9 @@ class LibraryController
 
         $query = "SELECT * FROM " . $book->table_name . " WHERE user_id = ?";
 
+        // Om ett sökord finns, inkludera det i WHERE-klausulen för title, author, och series
         if ($searchTerm) {
-            $query .= " AND (title LIKE ? OR author LIKE ?)";
+            $query .= " AND (title LIKE ? OR author LIKE ? OR series LIKE ?)";
         }
 
         $query .= " ORDER BY $sortBy $sortOrder LIMIT ?, ?";
@@ -26,9 +27,12 @@ class LibraryController
         $stmt = $this->conn->prepare($query);
 
         if ($searchTerm) {
+            // Förbered sökordet med % för LIKE-sökning
             $searchTerm = "%$searchTerm%";
-            $stmt->bind_param("issii", $user_id, $searchTerm, $searchTerm, $offset, $limit);
+            // Binda parametrarna (user_id, searchTerm för title, author och series, offset, limit)
+            $stmt->bind_param("isssii", $user_id, $searchTerm, $searchTerm, $searchTerm, $offset, $limit);
         } else {
+            // Binda parametrarna utan sökterm
             $stmt->bind_param("iii", $user_id, $offset, $limit);
         }
 

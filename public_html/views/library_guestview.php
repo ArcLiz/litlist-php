@@ -1,6 +1,7 @@
 <?php
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
 
 include_once '../../inc/dbmysqli.php';
 include_once '../controllers/LibraryController.php';
@@ -109,10 +110,10 @@ include '../components/header.php';
                 <input type="text" name="search" value="<?= htmlspecialchars($searchTerm) ?>"
                     placeholder="Sök efter böcker..."
                     class="border border-gray-300 rounded-full h-10 w-48 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
-                <input type="hidden" name="user_id" value="<?= $user_id ?>">
+                <input type="hidden" name="user_id" value="<?= htmlspecialchars($profile_id) ?>">
 
                 <?php if ($searchTerm): ?>
-                    <a href="library_table.php?user_id=<?= $user_id ?>" class="absolute right-3 text-red-500"><i
+                    <a href="library_guestview.php?user_id=<?= $profile_id ?>" class="absolute right-3 text-red-500"><i
                             class="fa-solid fa-rotate-left"></i></a>
                 <?php else: ?>
                     <button type="submit" class="absolute right-3 text-gray-500">
@@ -129,19 +130,19 @@ include '../components/header.php';
                     <tr class="bg-gray-100">
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <a
-                                href="?page=<?= $page ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=title&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Titel</a>
+                                href="?page=<?= $page ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=title&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Titel</a>
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <a
-                                href="?page=<?= $page ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=author&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Författare</a>
+                                href="?page=<?= $page ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=author&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Författare</a>
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <a
-                                href="?page=<?= $page ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=genre&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Genre</a>
+                                href="?page=<?= $page ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=genre&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Genre</a>
                         </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <a
-                                href="?page=<?= $page ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=location&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Placering</a>
+                                href="?page=<?= $page ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=location&order=<?= $sortOrder === 'ASC' ? 'DESC' : 'ASC' ?>">Placering</a>
                         </th>
                     </tr>
                 </thead>
@@ -207,7 +208,7 @@ include '../components/header.php';
                 <nav aria-label="Page navigation">
                     <ul class="inline-flex -space-x-px">
                         <li>
-                            <a href="?page=<?= max(1, $page - 1) ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
+                            <a href="?page=<?= max(1, $page - 1) ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
                                 class="px-3 py-2 text-sm font-medium <?= $page == 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100' ?>"
                                 aria-label="Previous" <?= $page == 1 ? 'aria-disabled="true"' : '' ?>>
                                 Tillbaka
@@ -215,7 +216,7 @@ include '../components/header.php';
                         </li>
 
                         <li>
-                            <a href="?page=1&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
+                            <a href="?page=1&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
                                 class="mr-4 px-3 py-2 text-sm font-medium <?= $page == 1 ? 'text-blue-600 bg-blue-100' : 'text-gray-500 bg-white' ?> border border-gray-300 hover:bg-gray-100">
                                 1
                             </a>
@@ -226,7 +227,7 @@ include '../components/header.php';
                         $end = min($totalPages - 1, $start + 2);
                         for ($i = $start; $i <= $end; $i++): ?>
                             <li>
-                                <a href="?page=<?= $i ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
+                                <a href="?page=<?= $i ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
                                     class="mr-4 px-3 py-2 text-sm font-medium <?= $page == $i ? 'text-blue-600 bg-blue-100' : 'text-gray-500 bg-white' ?> border border-gray-300 hover:bg-gray-100">
                                     <?= $i ?>
                                 </a>
@@ -234,14 +235,14 @@ include '../components/header.php';
                         <?php endfor; ?>
 
                         <li>
-                            <a href="?page=<?= $totalPages ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
+                            <a href="?page=<?= $totalPages ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
                                 class="mr-4 px-3 py-2 text-sm font-medium <?= $page == $totalPages ? 'text-blue-600 bg-blue-100' : 'text-gray-500 bg-white' ?> border border-gray-300 hover:bg-gray-100">
                                 <?= $totalPages ?>
                             </a>
                         </li>
 
                         <li>
-                            <a href="?page=<?= min($totalPages, $page + 1) ?>&user_id=<?= $user_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
+                            <a href="?page=<?= min($totalPages, $page + 1) ?>&user_id=<?= $profile_id ?>&search=<?= urlencode($searchTerm) ?>&sort=<?= $sortBy ?>&order=<?= $sortOrder ?>"
                                 class="px-3 py-2 text-sm font-medium <?= $page == $totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-100' ?>"
                                 aria-label="Next" <?= $page == $totalPages ? 'aria-disabled="true"' : '' ?>>
                                 Nästa
