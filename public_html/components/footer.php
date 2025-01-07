@@ -8,15 +8,16 @@
             </div>
             <div class="text-neutral-300 px-2 py-4 flex flex-col md:flex-row md:items-center justify-between">
                 <div class="text-2xl flex justify-around md:w-1/3 md:space-x-5 pb-5 md:pb-0">
-                    <a href=""><i class="fa-brands fa-github"></i></a>
-                    <a href=""><i class="fa-brands fa-instagram"></i></a>
-                    <a href=""><i class="fa-solid fa-envelope"></i></a>
-                    <a href=""><i class="fa-solid fa-phone"></i></a>
+                    <a href="https://github.com/ArcLiz" target="_blank"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://instagram.com/lizahgyllingsten" target="_blank"><i
+                            class="fa-brands fa-instagram"></i></a>
+                    <a href="mailto:lizah@gyllingstendesigns.com"><i class="fa-solid fa-envelope"></i></a>
                 </div>
                 <div
                     class="text-sm flex flex-col justify-center text-center space-y-3 md:space-y-0 md:space-x-4 md:justify-start md:flex-row md:items-center ">
                     <p class="">&copy; 2024 Gyllingsten Designs</p>
-                    <img src="../assets/logo-white.svg" alt="" class="h-[40px]">
+                    <a href="https://gyllingstendesigns.com" target="_blank"><img src="../assets/logo-white.svg" alt=""
+                            class="h-[40px]"></a>
                 </div>
             </div>
 
