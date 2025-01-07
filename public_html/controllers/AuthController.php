@@ -89,6 +89,34 @@ class AuthController
         }
     }
 
+    public function updateReadingHistoryPrivacy($user_id, $is_public)
+    {
+        $stmt = $this->conn->prepare("UPDATE auth_users SET public = ? WHERE id = ?");
+        $stmt->bind_param("ii", $is_public, $user_id);
+
+        if ($stmt->execute()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function showReadingHistoryPrivacyForm($user_id)
+    {
+        $stmt = $this->conn->prepare("SELECT public FROM auth_users WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return $row['public'];
+        } else {
+            return null;
+        }
+    }
+
     public function logout()
     {
         session_destroy();

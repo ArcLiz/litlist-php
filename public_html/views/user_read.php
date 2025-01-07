@@ -4,13 +4,7 @@ ini_set('display_errors', 1);
 
 include '../../inc/dbmysqli.php';
 include_once '../controllers/ReadController.php';
-
-// Kontrollera om användaren är inloggad
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
+include_once '../controllers/AuthController.php';
 
 $user_id = $_SESSION['user_id']; // Hämta inloggad användares id
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
@@ -21,6 +15,7 @@ $sortBy = isset($_GET['sort']) ? $_GET['sort'] : 'date_finished';
 $sortOrder = isset($_GET['order']) ? $_GET['order'] : 'DESC';
 
 $readController = new ReadController($conn);
+$authController = new AuthController($conn);
 
 // Hämta alla lästa böcker
 $booksResult = $readController->getAllReadBooksByUser($user_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
@@ -48,6 +43,7 @@ while ($row = $result->fetch_assoc()) {
     ];
 }
 
+$isPublic = $authController->showReadingHistoryPrivacyForm($user_id);
 
 include '../components/header.php';
 ?>
@@ -55,6 +51,10 @@ include '../components/header.php';
 <!-- CONTENT HERE -->
 <main class="grow w-screen min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
     <div class="bg-white p-6 min-h-screen w-full md:w-2/3">
+        <div>
+            <label for="reading-history-checkbox">Visa läshistorik offentligt</label>
+            <input type="checkbox" id="reading-history-checkbox" <?php echo $isPublic ? 'checked' : ''; ?>>
+        </div>
 
         <!-- Formulär för att lägga till ny bok -->
         <div class="mb-6 shadow-lg rounded-lg border p-6">
@@ -144,23 +144,18 @@ include '../components/header.php';
                         </thead>
                         <tbody>
                             <?php
-                            // Hämta dagens datum och månad
                             $currentYear = date('Y');
                             $currentMonth = date('m');
 
-                            // Hitta första dagen i månaden
                             $firstDayOfMonth = strtotime("first day of {$currentYear}-{$currentMonth}");
                             $firstDayWeekday = date('w', $firstDayOfMonth);
 
-                            // Om första dagen är söndag (0), ändra så att det blir 7 (Lördag)
                             if ($firstDayWeekday == 0) {
                                 $firstDayWeekday = 7;
                             }
 
-                            // Hitta antal dagar i månaden
                             $daysInMonth = date('t', $firstDayOfMonth);
 
-                            // Skapa en array för att hålla reda på när böcker avslutades
                             $finishedDates = [];
                             foreach ($finishedBooks as $book) {
                                 $finishedDate = date('Y-m-d', strtotime($book['date']));
@@ -173,17 +168,16 @@ include '../components/header.php';
                                 echo '<tr>';
                                 for ($j = 0; $j < 7; $j++) {
                                     if ($i == 0 && $j < $firstDayWeekday - 1) {
-                                        echo '<td class="px-2 py-1"></td>'; // Fyll i tomma celler innan första dagen i månaden
+                                        echo '<td class="px-2 py-1"></td>';
                                     } else if ($dayCounter <= $daysInMonth) {
                                         $currentDate = "{$currentYear}-{$currentMonth}-" . str_pad($dayCounter, 2, '0', STR_PAD_LEFT);
                                         $isBookFinished = in_array($currentDate, $finishedDates) ? 'book-finished' : '';
                                         $isToday = ($currentDate === date('Y-m-d')) ? 'bg-teal-100 text-teal-800 font-bold underline' : '';
 
-                                        // Skapa cellen för varje dag med Tailwind CSS
                                         echo "<td class='px-2 py-1 text-sm text-gray-600  $isBookFinished $isToday'>{$dayCounter}</td>";
                                         $dayCounter++;
                                     } else {
-                                        echo '<td class="px-2 py-1"></td>'; // Fyll i tomma celler efter sista dagen i månaden
+                                        echo '<td class="px-2 py-1"></td>';
                                     }
                                 }
                                 echo '</tr>';
@@ -340,24 +334,20 @@ include '../components/header.php';
             const rating = this.getAttribute('data-rating');
             const dateFinished = this.getAttribute('data-date_finished');
 
-            // Fyll i modalen med bokdata
             document.getElementById('book_id').value = bookId;
             document.getElementById('edit_title').value = title;
             document.getElementById('edit_author').value = author;
             document.getElementById('edit_rating').value = rating;
             document.getElementById('edit_date_finished').value = dateFinished;
 
-            // Visa modalen
             document.getElementById('editBookModal').classList.remove('hidden');
         });
     });
 
-    // Stäng modalen när användaren klickar på stäng-knappen
     document.querySelector('.close-modal').addEventListener('click', function () {
         document.getElementById('editBookModal').classList.add('hidden');
     });
 
-    // Stäng modalen om man klickar utanför den
     window.addEventListener('click', function (event) {
         const modal = document.getElementById('editBookModal');
         if (event.target === modal) {
@@ -369,15 +359,30 @@ include '../components/header.php';
         cell.addEventListener('click', function () {
             const day = this.innerText;
             const bookDetails = getBookDetailsForDate(day);
-            alert(bookDetails);  // Här kan du ersätta med en modal
+            alert(bookDetails);
         });
     });
 
     function getBookDetailsForDate(day) {
-        // Hämta bokdetaljer för den aktuella dagen (den här funktionen kan anpassas)
         const book = finishedBooks.find(b => b.date === `${currentYear}-${currentMonth}-${day}`);
         return book ? `Bok: ${book.title}` : 'Ingen bok avslutad på detta datum';
     }
+
+    // AJAX JS för att uppdatera currentPrivacy
+    document.getElementById('reading-history-checkbox').addEventListener('change', function () {
+        const isPublic = this.checked ? 1 : 0; // Om checkboxen är markerad, sätt till 1 (true), annars 0 (false)
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "../actions/update_history_preference_action.php", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+            } else {
+                console.error("Fel vid uppdatering.");
+            }
+        };
+        xhr.send("user_id=<?php echo $user_id; ?>&is_public=" + isPublic);
+    });
 </script>
 
 
