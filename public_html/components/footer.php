@@ -17,7 +17,7 @@
                     class="text-sm flex flex-col justify-center text-center space-y-3 md:space-y-0 md:space-x-4 md:justify-start md:flex-row md:items-center ">
                     <p class="">&copy; 2024 Gyllingsten Designs</p>
                     <a href="https://gyllingstendesigns.com" target="_blank"><img src="../assets/logo-white.svg" alt=""
-                            class="h-[40px]"></a>
+                            class="h-[40px] mx-auto md:mx-0"></a>
                 </div>
             </div>
 

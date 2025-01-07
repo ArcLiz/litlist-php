@@ -34,7 +34,7 @@
                 <div class="flex space-x-5">
                     <!-- ADD NEW BOOK -->
                     <form id="newBookForm" method="POST"
-                        class="flex items-center mr-16 md:mr-0 relative w-58 my-2 text-black <?= !isset($_SESSION['user_id']) ? 'hidden' : '' ?>">
+                        class="flex items-center relative w-58 my-2 text-black <?= !isset($_SESSION['user_id']) ? 'hidden' : '' ?>">
                         <input type="text" id="new_book" placeholder="Ange ny boktitel"
                             class="border border-gray-300 rounded-full py-1 px-4 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent">
 

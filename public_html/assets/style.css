@@ -140,6 +140,33 @@
   color: #555;
 }
 
+/* Small books Guest View */
+.bookSmall {
+  width: 35px; /* Justera bredden på boken */
+  height: 150px; /* Justera höjden på boken */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.bookSmall-title {
+  font-size: 12px;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  color: #333;
+  text-align: center;
+  position: absolute;
+  top: 10px;
+}
+
+.bookSmall p {
+  font-size: 10px;
+  color: #555;
+}
+
 /* READ CALENDAR */
 .calendar th,
 .calendar td {

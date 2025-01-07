@@ -72,14 +72,14 @@ include '../components/header.php';
 
         <!-- Quick Links -->
         <div
-            class="flex flex-col justify-center text-white mx-auto mt-10 p-10 mx-10">
+            class="flex flex-col justify-center text-white mx-auto mt-10 p-6 md:p-10 md:mx-10">
             <div>
                 <h1 class="font-semibold text-3xl md:text-center mb-4 text-teal-400 afacad">Inspiration <i
                         class="fa-solid fa-arrow-down text-sm"></i></h1>
                 <h2 class="text-xl md:text-center afacad">Nedan hittar du våra populäraste användare.</h2>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 md:mx-auto gap-10 mt-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 md:mx-auto gap-6 md:gap-10 mt-10">
                 <?php while ($row = $topUsers->fetch_assoc()): ?>
                     <div
                         class="border border-teal-700 rounded-t-full p-4 hover:scale-105 hover:shadow hover:shadow-neutral-800">
