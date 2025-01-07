@@ -1,13 +1,12 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit();
 }
-
-include '../components/header.php';
-
 
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
@@ -18,17 +17,23 @@ $bio = $_SESSION['bio'];
 $created_at = $_SESSION['created_at'];
 $user_category = $_SESSION['user_category'];
 
-include '../components/editProfile_form.php';
-include '../components/wishlist.php';
+include_once '../../inc/dbmysqli.php';
+include_once '../components/editProfile_form.php';
 include_once '../controllers/LibraryController.php';
+include_once '../models/Wishlist.php';
 
 $libraryController = new LibraryController($conn);
-
-$wishlist = getWishlist($user_id);
 $totalBooks = $libraryController->getTotalBooksByUser($user_id);
 
-?>
+// Skapa en instans av Wishlist
+$wishlistModel = new Wishlist($conn);
 
+// Hämta önskelistan för användarens profil
+$wishlist = $wishlistModel->getWishlist($user_id);
+
+include '../components/header.php';
+
+?>
 
 <main
     class="grow w-screen min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
@@ -79,7 +84,10 @@ $totalBooks = $libraryController->getTotalBooksByUser($user_id);
                         <ul class="list-disc p-4 ">
                             <li><?php echo $totalBooks ?> registrerade böcker</li>
                             <li>medlem sedan den
-                                <?php echo date("j", strtotime($created_at)) . " " . strtolower(strftime('%B', strtotime($created_at))) . " " . date("Y", strtotime($created_at)); ?>
+                                <?php
+                                $date = new DateTime($created_at);
+                                echo $date->format('j F Y'); // Formaterar till exempel "7 januari 2025"
+                                ?>
                             </li>
                             <li>
                                 <?php
@@ -126,21 +134,62 @@ $totalBooks = $libraryController->getTotalBooksByUser($user_id);
                         <?php endif; ?>
 
                     </ul>
+
                 </div>
-                <div class="text-end">
+                <div class="flex justify-end">
                     <button id="openWishlistModal"
-                        class="active:scale-90 w-full md:w-fit mt-8 border border-white text-white py-3 px-6 uppercase rounded-3xl font-medium hover:bg-teal-700">Önskelista
-                        <i
-                            class="fa-solid fa-pen"></i></button>
+                        class="active:scale-90 w-full md:w-fit mt-8 border border-teal-600 bg-white text-teal-600 hover:bg-teal-500 hover:text-white hover:border-white py-3 px-6 uppercase rounded-3xl font-medium">Öppna
+                        Önskelista</button>
                 </div>
             </div>
-        </div>
-    </div>
 </main>
+
+<!-- WISHLIST MODAL TEST -->
+<div id="wishlistModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
+    <div class="bg-white p-4 rounded-lg shadow-md w-96">
+        <div class="flex justify-between items-start">
+            <h2 class="text-xl font-bold mb-4 text-teal-500">Din Önskelista</h2>
+            <button type="button" id="closeWishlistModal" class="text-gray-800 hover:text-red-700 py-1 px-2 rounded-md">
+                <i class="fa-solid fa-rectangle-xmark"></i>
+            </button>
+        </div>
+        <ul id="wishlist" class="p-2 border rounded mb-5">
+            <!-- Dynamic Wishlist -->
+        </ul>
+        <hr>
+
+        <!-- Formulär för att lägga till/redigera bok -->
+        <form id="wishlistForm" class="mt-4">
+            <h2 id="formTitle" class="text-xl font-bold mb-4 text-teal-500">Lägg till</h2>
+            <input type="hidden" name="book_id" id="bookId">
+            <div class="mb-4">
+                <label for="title" class="block text-gray-700">Boktitel:</label>
+                <input type="text" id="title" class="border rounded w-full py-2 px-3" required>
+            </div>
+            <div class="mb-4">
+                <label for="author" class="block text-gray-700">Författare:</label>
+                <input type="text" id="author" class="border rounded w-full py-2 px-3" required>
+            </div>
+            <div class="flex space-x-2">
+                <button type="button" id="submitWishlistForm"
+                    class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">
+                    Lägg till
+                </button>
+
+                <!-- Lägg till knappen för att återställa formuläret -->
+                <button type="button" id="resetFormButton"
+                    class="bg-gray-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md hidden">
+                    Återställ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php include '../components/footer.php'; ?>
 
 <script>
+    //Profile
     const editProfileBtn = document.getElementById('editProfileBtn');
     const editProfileModal = document.getElementById('editProfileModal');
 
@@ -148,15 +197,107 @@ $totalBooks = $libraryController->getTotalBooksByUser($user_id);
         editProfileModal.classList.remove('hidden');
     });
 
-    // Wishlist Modal
-    const wishlistModal = document.getElementById('wishlistModal');
-    const openWishlistModalBtn = document.getElementById('openWishlistModal');
-    const closeWishlistModalBtn = document.getElementById('closeWishlistModal');
+    //Wishlist test
+    document.addEventListener('DOMContentLoaded', () => {
+        const wishlistModal = document.getElementById('wishlistModal');
+        const openWishlistModal = document.getElementById('openWishlistModal');
+        const closeWishlistModal = document.getElementById('closeWishlistModal');
+        const wishlistForm = document.getElementById('wishlistForm');
+        const formTitle = document.getElementById('formTitle');
+        const submitWishlistForm = document.getElementById('submitWishlistForm');
+        const wishlistContainer = document.getElementById('wishlist');
+        const bookIdInput = document.getElementById('bookId');
+        const titleInput = document.getElementById('title');
+        const authorInput = document.getElementById('author');
+        const resetFormButton = document.getElementById('resetFormButton');  // Ny knapp för att återställa formuläret
 
-    openWishlistModalBtn.addEventListener('click', function () {
-        wishlistModal.classList.remove('hidden');
-    });
-    closeWishlistModalBtn.addEventListener('click', function () {
-        wishlistModal.classList.add('hidden');
+        // Öppna och stäng modalen
+        openWishlistModal.addEventListener('click', () => {
+            fetchWishlist();
+            wishlistModal.classList.remove('hidden');
+        });
+
+        closeWishlistModal.addEventListener('click', () => {
+            wishlistModal.classList.add('hidden');
+            resetForm();
+        });
+
+        // Hämta önskelista från API
+        function fetchWishlist() {
+            fetch('../actions/wishlist-api.php')
+                .then(response => response.json())
+                .then(data => {
+                    wishlistContainer.innerHTML = '';
+                    data.forEach(book => {
+                        wishlistContainer.innerHTML += `
+                    <li id="book-${book.id}" class="border rounded my-2 p-2 text-sm text-black">
+                        <strong>${book.title}</strong> av ${book.author}
+                        <div class="text-right mt-2">
+                            <button class="text-red-800" onclick="deleteBook(${book.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                            <button class="text-blue-800" onclick="editBook(${book.id}, '${book.title}', '${book.author}')">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
+                        </div>
+                    </li>`;
+                    });
+                });
+        }
+
+        // Lägg till eller uppdatera bok
+        submitWishlistForm.addEventListener('click', () => {
+            const bookId = bookIdInput.value;
+            const title = titleInput.value;
+            const author = authorInput.value;
+
+            if (!title || !author) return alert('Titel och författare krävs.');
+
+            const action = bookId ? 'update' : 'add';
+            const body = new URLSearchParams({ action, book_id: bookId, title, author });
+
+            fetch('../actions/wishlist-api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            })
+                .then(response => response.json())
+                .then(() => {
+                    fetchWishlist();
+                    resetForm();
+                });
+        });
+
+        window.editBook = (bookId, title, author) => {
+            bookIdInput.value = bookId;
+            titleInput.value = title;
+            authorInput.value = author;
+            formTitle.textContent = 'Redigera';
+
+            resetFormButton.classList.remove('hidden');
+        };
+
+        window.deleteBook = (bookId) => {
+            if (!confirm('Är du säker på att du vill ta bort den här boken?')) return;
+
+            fetch('../actions/wishlist-api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'delete', book_id: bookId })
+            })
+                .then(response => response.json())
+                .then(() => fetchWishlist());
+        };
+
+        function resetForm() {
+            wishlistForm.reset();
+            bookIdInput.value = '';
+            formTitle.textContent = 'Lägg till';
+            resetFormButton.classList.add('hidden');
+        }
+
+        resetFormButton.addEventListener('click', () => {
+            resetForm();
+        });
     });
 </script>

@@ -8,6 +8,7 @@ include_once '../controllers/LibraryController.php';
 include_once '../controllers/AuthController.php';
 include_once '../models/Book.php';
 include_once '../models/Wishlist.php';
+include_once '../models/GuestbookMessage.php';
 
 // Sätt profil-ID från URL:en
 $profile_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
@@ -55,18 +56,25 @@ $wishlistModel = new Wishlist($conn);
 // Hämta önskelistan för användarens profil
 $wishlist = $wishlistModel->getWishlist($profile_id);
 
+// Hämta meddelanden för en viss användare (t.ex. användarprofilens ID)
+$receiver_id = $profile_id;
+$guestbook = new GuestbookMessage($conn);
+
+// Hämta meddelanden
+$messages = $guestbook->getMessagesForUser($receiver_id);
+
 include '../components/header.php';
 ?>
 
 
 <!-- CONTAINER -->
 <main class="grow w-screen bg-gradient-to-b from-neutral-900 to-neutral-700">
-    <div class="mx-auto bg-white p-6 max-w-[1280px]">
-        <div class="flex justify-between -m-6 p-6 bg-gradient-to-b from-white to-teal-500">
+    <div class="mx-auto bg-white p-6 max-w-[1280px] bg-gradient-to-b from-white to-teal-500">
+        <div class="flex justify-between -m-6 p-6">
             <div class="w-4/5 mx-auto">
                 <img src="../uploads/avatars/<?php echo $profile_avatar ?>" alt=""
                     class="h-40 w-40 rounded-full border-4 border-teal-600 mb-4 mx-auto">
-                <h1 class="afacad uppercase text-2xl text-center ml-3">
+                <h1 class="uppercase text-2xl text-center ml-3">
                     Välkommen till <?php echo htmlspecialchars($profile_user); ?>
                 </h1>
                 <p class="text-center">
@@ -80,7 +88,6 @@ include '../components/header.php';
                     <h2 class="text-2xl font-bold mb-4 text-teal-500 text-center">Önskelista <i
                             class="fa-solid fa-gift pl-3 text-xl"></i></h2>
                 </div>
-
 
                 <?php if (empty($wishlist)): ?>
                     <div class="col-span-2">
@@ -96,10 +103,66 @@ include '../components/header.php';
                 <?php endif; ?>
             </div>
         </div>
-        <div class="">
+        <div class="border-t mt-6 pt-6">
 
+            <div class="bg-white/50 p-6 rounded-lg shadow-md space-x-4">
+                <h1 class="text-3xl font-bold text-teal-700 whisper mb-4">
+                    Gästbok
+                </h1>
+                <div class="flex space-x-4">
+                    <!-- Skicka meddelande formulär (endast för inloggade användare) -->
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <form method="POST" action="../actions/send_message.php" class="flex md:w-1/3">
+                            <textarea name="message" placeholder="Skriv ditt meddelande här..." required
+                                class="w-full p-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition ease-in-out"></textarea>
+                            <input type="hidden" name="receiver_id" value="<?= $profile_id ?>">
+                            <button type="submit"
+                                class="py-3 px-4 bg-teal-600 text-white rounded-r-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition">
+                                Skicka
+                            </button>
+                        </form>
+                    <?php endif; ?>
+
+                    <!-- Gästboksmeddelanden -->
+                    <div class="guestbook-messages grid grid-cols-2 gap-4 md:w-2/3">
+                        <?php if ($messages->num_rows > 0): ?>
+                            <?php while ($message = $messages->fetch_assoc()): ?>
+                                <div class="message p-3 bg-white/70 rounded-lg shadow-md flex items-start space-x-3 relative">
+                                    <img src="../uploads/avatars/<?= htmlspecialchars($message['avatar']) ?>" alt="Avatar"
+                                        class="w-10 h-10 rounded-full object-cover border-2 border-teal-500">
+                                    <div class="">
+                                        <p><strong class="text-teal-600">Hälsning från
+                                                <?= htmlspecialchars($message['username']) ?><span
+                                                    class="text-neutral-800 font-semibold"></span></strong></p>
+                                        <p class="text-gray-700 text-sm"><?= nl2br(htmlspecialchars($message['message'])) ?></p>
+                                        <p class="text-xs text-gray-500">
+                                            <em><?= date("d M Y, H:i", strtotime($message['created_at'])) ?></em>
+                                        </p>
+                                    </div>
+
+                                    <!-- Visa papperskorg om inloggad användare är samma som sender_id eller profile_id -->
+                                    <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $profile_id): ?>
+                                        <form method="POST" action="../actions/delete_message.php"
+                                            class="absolute bottom-1 right-2">
+                                            <input type="hidden" name="message_id" value="<?= $message['id'] ?>">
+                                            <button type="submit" class="text-neutral-700 text-sm hover:text-red-700">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <p class="text-gray-500">Inga meddelanden ännu.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+
+    <!-- LIBRARY -->
     <div class="mx-auto bg-white p-6 max-w-[1280px] min-h-screen">
 
         <!-- PAGE HEADER -->

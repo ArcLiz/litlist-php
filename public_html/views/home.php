@@ -10,8 +10,8 @@ if (isset($_SESSION['user_id'])) {
     $username = null;
 }
 
+include_once '../../inc/dbmysqli.php';
 include_once '../controllers/LibraryController.php';
-include '../components/wishlist.php';
 include '../components/editProfile_form.php';
 
 $libraryController = new LibraryController($conn);
@@ -47,6 +47,8 @@ include '../components/header.php';
                 </h1>
                 <p>Vad vill du göra just nu?</p>
 
+
+
                 <div class="text-sm flex-col flex space-y-4">
                     <a href="user_read.php"
                         class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md text-center">Lästa
@@ -54,8 +56,8 @@ include '../components/header.php';
                     <a href="library_table.php"
                         class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md text-center">Besöka mitt
                         bibliotek</a>
-                    <button id="openWishlistModal"
-                        class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">Öppna Önskelista</button>
+                    <!-- Den här knappen öppnar modalen -->
+                    <?php include '../components/wishlist.php'; ?>
                     <button id="editProfileBtn"
                         class="mt-4 bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">Kontoinställningar</button>
                 </div>
@@ -104,18 +106,6 @@ include '../components/header.php';
 <?php include '../components/footer.php' ?>
 
 <script>
-    // Wishlist Modal
-    const wishlistModal = document.getElementById('wishlistModal');
-    const openWishlistModalBtn = document.getElementById('openWishlistModal');
-    const closeWishlistModalBtn = document.getElementById('closeWishlistModal');
-
-    openWishlistModalBtn.addEventListener('click', function () {
-        wishlistModal.classList.remove('hidden');
-    });
-    closeWishlistModalBtn.addEventListener('click', function () {
-        wishlistModal.classList.add('hidden');
-    });
-
     // Edit Profile Modal
     const editProfileBtn = document.getElementById('editProfileBtn');
     const editProfileModal = document.getElementById('editProfileModal');
