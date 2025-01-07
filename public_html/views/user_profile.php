@@ -1,303 +1,230 @@
 <?php
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
-session_start();
-
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
-}
-
-$user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'];
-$email = $_SESSION['email'];
-$display_name = $_SESSION['display_name'];
-$avatar = $_SESSION['avatar'];
-$bio = $_SESSION['bio'];
-$created_at = $_SESSION['created_at'];
-$user_category = $_SESSION['user_category'];
 
 include_once '../../inc/dbmysqli.php';
-include_once '../components/editProfile_form.php';
 include_once '../controllers/LibraryController.php';
+include_once '../controllers/AuthController.php';
+include_once '../models/Book.php';
 include_once '../models/Wishlist.php';
+include_once '../models/GuestbookMessage.php';
+include_once '../controllers/ReadController.php';
 
+// Sätt profil-ID från URL:en
+$profile_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : $_SESSION['user_id'];
+if (!$profile_id) {
+    die("Profil-ID saknas eller är ogiltigt.");
+}
+
+// Hantera sidnummer och andra parametrar
+$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+$limit = 25;
+$offset = ($page - 1) * $limit;
+
+$searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
+$sortBy = isset($_GET['sort']) ? $_GET['sort'] : 'title';
+$sortOrder = isset($_GET['order']) ? $_GET['order'] : 'ASC';
+
+// Skapa kontroller
+$readController = new ReadController($conn);
 $libraryController = new LibraryController($conn);
-$totalBooks = $libraryController->getTotalBooksByUser($user_id);
+$authController = new AuthController($conn);
 
-// Skapa en instans av Wishlist
+// Hämta användarnamn för profil-ID
+$profile_user = $authController->getUsernameById($profile_id);
+$profile_bio = $authController->getBioById($profile_id);
+$profile_avatar = $authController->getAvatarById($profile_id);
+$isPublic = $authController->showReadingHistoryPrivacyForm($profile_id);
+if (!$profile_user) {
+    die("Användaren hittades inte. Kontrollera att user_id är korrekt: " . $profile_id);
+}
+
+// Hämta böcker baserat på profil-ID
+$booksResult = $libraryController->getAllBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$totalBooks = $libraryController->getTotalBooksByUser($profile_id, $searchTerm);
+$totalPages = ceil($totalBooks / $limit);
+
+
+// WISHLIST
 $wishlistModel = new Wishlist($conn);
 
-// Hämta önskelistan för användarens profil
-$wishlist = $wishlistModel->getWishlist($user_id);
+$wishlist = $wishlistModel->getWishlist($profile_id);
+
+// GUESTBOOK
+$receiver_id = $profile_id;
+$guestbook = new GuestbookMessage($conn);
+
+$messages = $guestbook->getMessagesForUser($receiver_id);
+
+// READ BOOKS
+$booksResult = $readController->getAllReadBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$booksInYear = $readController->getBooksReadThisYear($profile_id);
+
+$query = "SELECT title, date_finished FROM library_read WHERE user_id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$finishedBooks = [];
+while ($row = $result->fetch_assoc()) {
+    $finishedBooks[] = [
+        'title' => $row['title'],
+        'date' => $row['date_finished']
+    ];
+}
 
 include '../components/header.php';
-
 ?>
 
-<main
-    class="grow w-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
-    <!-- Profile Card -->
-    <div class="mx-auto container">
-        <div id="swap-container"
-            class="flex flex-col md:flex-row bg-white md:justify-between mx-auto max-w-4xl md:h-[550px] rounded-2xl shadow-lg shadow-neutral-900 md:mt-16">
-            <div id="left-section"
-                class="box md:rounded-l-2xl bg-white p-8 md:w-2/3 flex flex-col justify-between space-y-5">
-                <!-- PROFIL -->
-                <div class="text-center">
-                    <div class="flex justify-around md:justify-between items-center">
-                        <div class="w-1/3 md:w-1/4">
-                            <img src="../uploads/avatars/<?php echo $avatar ?>" alt=""
-                                class="h-32 w-32 rounded-full border-4 border-teal-500 mb-4">
-                        </div>
-                        <div class="w:2/3 md:w-3/4 afacad text-center">
-                            <h1 class="text-3xl font-bold text-teal-400 mb-2">
-                                <?php
-                                if (!empty($display_name)) {
-                                    echo htmlspecialchars($display_name);
-                                } else {
-                                    echo htmlspecialchars($username);
-                                }
-                                ?>
-                            </h1>
 
-                            <?php if (!empty($display_name)): ?>
-                                <p class="text-lg text-gray-700 mb-1">
-                                    <span>@</span><?php echo htmlspecialchars($username); ?>
-                                </p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="relative mt-10 text-start">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-book text-gray-400"></i>
-                            <span class="ml-2 text-gray-400 text-sm">BIO</span>
-                        </span>
-                        <div
-                            class="block w-full pl-10 px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                            <p class="pl-8">
-                                <?php echo !empty($bio) ? htmlspecialchars($bio) : "Ingen bio tillgänglig"; ?>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="text-start mx-4 my-5">
-                        <ul class="list-disc p-4 ">
-                            <li><?php echo $totalBooks ?> registrerade böcker</li>
-                            <li>medlem sedan den
-                                <?php
-                                $date = new DateTime($created_at);
-                                echo $date->format('j F Y'); // Formaterar till exempel "7 januari 2025"
-                                ?>
-                            </li>
-                            <li>
-                                <?php
-                                if ($_SESSION['user_category'] == 1) {
-                                    echo "site-administratör";
-                                } elseif ($_SESSION['user_category'] == 2) {
-                                    echo "privat profil";
-                                } elseif ($_SESSION['user_category'] == 3) {
-                                    echo "offentlig profil";
-                                } else {
-                                    echo "Okänd användarkategori";
-                                }
-                                ?>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-
-                <!-- Edit Profile Button -->
-                <div class="md:text-start ">
-                    <button id="editProfileBtn"
-                        class="active:scale-90 w-full md:w-fit mt-8 border border-teal-600 bg-teal-600 text-white hover:bg-white hover:text-teal-600 py-3 px-6 uppercase rounded-3xl font-medium">
-                        <i class="fa-solid fa-pen"></i> Profil
-                    </button>
-                </div>
+<!-- CONTAINER -->
+<main class="grow flex w-screen bg-gradient-to-b from-neutral-900 to-neutral-700">
+    <!-- PROFILE DETAILS CONTAINER -->
+    <div class="grow mx-auto max-w-[1280px] bg-gradient-to-b from-white to-teal-500">
+        <!-- Welcome, Profile Details -->
+        <div class="space-y-4 md:space-y-0 md:flex md:flex-row justify-between p-6">
+            <div class="md:w-4/5 mx-auto">
+                <img src="../uploads/avatars/<?php echo $profile_avatar ?>" alt=""
+                    class="h-24 w-24 md:h-40 md:w-40 rounded-full border-4 border-teal-600 mb-4 mx-auto">
+                <h1 class="uppercase text-2xl text-center ml-3">
+                    Välkommen till <?php echo htmlspecialchars($profile_user); ?>
+                </h1>
+                <p class="text-center">
+                    <?php echo htmlspecialchars($profile_user); ?> har <?php echo $totalBooks ?> böcker
+                    registrerade.<br><br>
+                    <?php echo htmlspecialchars($profile_bio); ?>
+                </p>
             </div>
+            <div class="w-full grid grid-cols-2 gap-4">
+                <div class="border p-2 md:p-4 bg-white/50 shadow-lg flex justify-center items-center">
+                    <h2 class="text-xl md:text-2xl font-bold text-teal-500 text-center">Önskelista</h2>
+                </div>
 
-            <!-- ÖNSKELISTA -->
-            <div id="right-section"
-                class="md:rounded-r-2xl bg-teal-500 p-8 md:w-1/3 text-white afacad md:h-[550px] flex flex-col justify-between">
-                <div>
-                    <h2 class="text-3xl font-bold mb-4">Önskelista <i class="fa-solid fa-gift pl-3 text-xl"></i></h2>
-                    <ul class="list-disc pl-5">
-                        <?php if (empty($wishlist)): ?>
-                            <li>Du har inga böcker i din önskelista ännu.</li>
+                <?php if (empty($wishlist)): ?>
+                    <div class="col-span-2">
+                        <p>Du har inga böcker i din önskelista ännu.</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($wishlist as $book): ?>
+                        <div class="border p-2 md:p-4 bg-white/50 shadow-lg">
+                            <h3 class="md:text-lg font-semibold"><?php echo htmlspecialchars($book['title']); ?></h3>
+                            <p class="text-xs italic"><?php echo "av " . htmlspecialchars($book['author']); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php include '../components/wishlist.php'; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- CONTAINER GUESTBOOK / READ BOOKS -->
+        <div class="border-t md:mt-6 md:pt-6 md:p-6">
+            <!-- Guestbook Container-->
+            <div class="bg-white/50 p-6 md:rounded-lg shadow-md md:space-x-4">
+                <h1 class="text-center md:text-left text-3xl font-bold text-teal-700 whisper mb-4">
+                    Gästbok
+                </h1>
+                <div class="md:space-x-4 flex flex-col md:flex-row">
+                    <!-- Gästboksmeddelanden -->
+                    <div class="guestbook-messages md:grid md:grid-cols-2 md:gap-4 md:w-2/3">
+                        <?php if ($messages->num_rows > 0): ?>
+                            <?php while ($message = $messages->fetch_assoc()): ?>
+                                <div
+                                    class="message p-3 bg-white/70 rounded-lg shadow-md flex items-start space-x-3 relative">
+                                    <img src="../uploads/avatars/<?= htmlspecialchars($message['avatar']) ?>" alt="Avatar"
+                                        class="w-10 h-10 rounded-full object-cover border-2 border-teal-500 hidden md:block">
+                                    <div class="">
+                                        <p><strong class="text-teal-600">Hälsning från
+                                                <?= htmlspecialchars($message['username']) ?><span
+                                                    class="text-neutral-800 font-semibold"></span></strong></p>
+                                        <p class="text-gray-700 text-sm"><?= nl2br(htmlspecialchars($message['message'])) ?></p>
+                                        <p class="text-xs text-gray-500">
+                                            <em><?= date("d M Y, H:i", strtotime($message['created_at'])) ?></em>
+                                        </p>
+                                    </div>
+
+                                    <!-- Visa papperskorg om inloggad användare är samma som sender_id eller profile_id -->
+                                    <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $profile_id): ?>
+                                        <form method="POST" action="../actions/delete_message.php"
+                                            class="absolute bottom-1 right-2">
+                                            <input type="hidden" name="message_id" value="<?= $message['id'] ?>">
+                                            <button type="submit" class="text-neutral-700 text-sm hover:text-red-700">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endwhile; ?>
                         <?php else: ?>
-                            <?php foreach ($wishlist as $book): ?>
-                                <li>
-                                    <?php echo htmlspecialchars($book['title']) . " <br><span class='text-xs italic'> av " . htmlspecialchars($book['author']) . "</span>"; ?>
-                                </li>
-                            <?php endforeach; ?>
-
+                            <p class="text-gray-500 text-center md:text-start">Inga meddelanden ännu <i
+                                    class="fa-regular fa-face-frown"></i></p>
                         <?php endif; ?>
-
-                    </ul>
-
-                </div>
-                <div class="flex justify-end">
-                    <button id="openWishlistModal"
-                        class="active:scale-90 w-full md:w-fit mt-8 border border-teal-600 bg-white text-teal-600 hover:bg-teal-500 hover:text-white hover:border-white py-3 px-6 uppercase rounded-3xl font-medium">Öppna
-                        Önskelista</button>
+                    </div>
                 </div>
             </div>
+
+            <!-- READ BOOKS -->
+            <div
+                class="flex justify-center items-center md:items-start flex-col md:mt-6 bg-teal-800/30 p-3 md:rounded-lg">
+                <div class="border-b-4 border-teal-700 border-lg rounded-lg px-3">
+                    <?php if ($booksResult->num_rows > 0): ?>
+                        <div class="book-container flex flex-wrap gap-1 pb-1">
+                            <?php while ($row = $booksResult->fetch_assoc()): ?>
+                                <!-- Bokbakgrund baserat på rating -->
+                                <?php
+                                $rating = $row['rating'];
+                                $bgColor = '';
+
+                                if ($rating == 1) {
+                                    $bgColor = 'bg-red-200';
+                                } elseif ($rating == 2) {
+                                    $bgColor = 'bg-orange-500';
+                                } elseif ($rating == 3) {
+                                    $bgColor = 'bg-neutral-300';
+                                } elseif ($rating == 4) {
+                                    $bgColor = 'bg-amber-200';
+                                } elseif ($rating == 5) {
+                                    $bgColor = 'bg-yellow-400';
+                                }
+                                ?>
+
+                                <div
+                                    class="bookSmall <?php echo $bgColor; ?> border-t-2 border-r-4 border-neutral-500 p-4 rounded-md flex flex-col items-center group relative overflow-hidden transition-all duration-300 w-[50px] hover:w-[150px] group-hover:w-[220px]">
+                                    <div
+                                        class="bookSmall-title flex justify-center items-center mb-2 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
+                                        <h4 class="text-md font-semibold"><?php echo htmlspecialchars($row['title']); ?></h4>
+                                    </div>
+
+                                    <!-- Författare, Betyg och Färdigläst, gömda som standard -->
+                                    <div
+                                        class="book-details opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center">
+                                        <p class="font-bold">Titel:</p>
+                                        <p><?php echo htmlspecialchars($row['title']); ?></p>
+                                        <p class="font-bold">Författare: </p>
+                                        <p><?php echo htmlspecialchars($row['author']); ?></p>
+                                        <p class="font-bold">Betyg: </p>
+                                        <p><?php echo $row['rating']; ?>/5</p>
+                                        <p class="font-bold">Färdigläst: </p>
+                                        <p><?php echo $row['date_finished']; ?></p>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        </div>
+                    <?php else: ?>
+                        <p>Du har inte lagt till några böcker ännu.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <!-- END READ BOOKS -->
+        </div>
+    </div>
+    </div>
 </main>
 
-<!-- WISHLIST MODAL TEST -->
-<div id="wishlistModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
-    <div class="bg-white p-4 rounded-lg shadow-md w-96">
-        <div class="flex justify-between items-start">
-            <h2 class="text-xl font-bold mb-4 text-teal-500">Din Önskelista</h2>
-            <button type="button" id="closeWishlistModal" class="text-gray-800 hover:text-red-700 py-1 px-2 rounded-md">
-                <i class="fa-solid fa-rectangle-xmark"></i>
-            </button>
-        </div>
-        <ul id="wishlist" class="p-2 border rounded mb-5">
-            <!-- Dynamic Wishlist -->
-        </ul>
-        <hr>
-
-        <!-- Formulär för att lägga till/redigera bok -->
-        <form id="wishlistForm" class="mt-4">
-            <h2 id="formTitle" class="text-xl font-bold mb-4 text-teal-500">Lägg till</h2>
-            <input type="hidden" name="book_id" id="bookId">
-            <div class="mb-4">
-                <label for="title" class="block text-gray-700">Boktitel:</label>
-                <input type="text" id="title" class="border rounded w-full py-2 px-3" required>
-            </div>
-            <div class="mb-4">
-                <label for="author" class="block text-gray-700">Författare:</label>
-                <input type="text" id="author" class="border rounded w-full py-2 px-3" required>
-            </div>
-            <div class="flex space-x-2">
-                <button type="button" id="submitWishlistForm"
-                    class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">
-                    Lägg till
-                </button>
-
-                <!-- Lägg till knappen för att återställa formuläret -->
-                <button type="button" id="resetFormButton"
-                    class="bg-gray-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md hidden">
-                    Återställ
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
+<!-- FOOTER -->
 <?php include '../components/footer.php'; ?>
 
-<script>
-    //Profile
-    const editProfileBtn = document.getElementById('editProfileBtn');
-    const editProfileModal = document.getElementById('editProfileModal');
+</body>
 
-    editProfileBtn.addEventListener('click', function () {
-        editProfileModal.classList.remove('hidden');
-    });
-
-    //Wishlist test
-    document.addEventListener('DOMContentLoaded', () => {
-        const wishlistModal = document.getElementById('wishlistModal');
-        const openWishlistModal = document.getElementById('openWishlistModal');
-        const closeWishlistModal = document.getElementById('closeWishlistModal');
-        const wishlistForm = document.getElementById('wishlistForm');
-        const formTitle = document.getElementById('formTitle');
-        const submitWishlistForm = document.getElementById('submitWishlistForm');
-        const wishlistContainer = document.getElementById('wishlist');
-        const bookIdInput = document.getElementById('bookId');
-        const titleInput = document.getElementById('title');
-        const authorInput = document.getElementById('author');
-        const resetFormButton = document.getElementById('resetFormButton');  // Ny knapp för att återställa formuläret
-
-        // Öppna och stäng modalen
-        openWishlistModal.addEventListener('click', () => {
-            fetchWishlist();
-            wishlistModal.classList.remove('hidden');
-        });
-
-        closeWishlistModal.addEventListener('click', () => {
-            wishlistModal.classList.add('hidden');
-            resetForm();
-        });
-
-        // Hämta önskelista från API
-        function fetchWishlist() {
-            fetch('../actions/wishlist-api.php')
-                .then(response => response.json())
-                .then(data => {
-                    wishlistContainer.innerHTML = '';
-                    data.forEach(book => {
-                        wishlistContainer.innerHTML += `
-                    <li id="book-${book.id}" class="border rounded my-2 p-2 text-sm text-black">
-                        <strong>${book.title}</strong> av ${book.author}
-                        <div class="text-right mt-2">
-                            <button class="text-red-800" onclick="deleteBook(${book.id})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                            <button class="text-blue-800" onclick="editBook(${book.id}, '${book.title}', '${book.author}')">
-                                <i class="fa-solid fa-gear"></i>
-                            </button>
-                        </div>
-                    </li>`;
-                    });
-                });
-        }
-
-        // Lägg till eller uppdatera bok
-        submitWishlistForm.addEventListener('click', () => {
-            const bookId = bookIdInput.value;
-            const title = titleInput.value;
-            const author = authorInput.value;
-
-            if (!title || !author) return alert('Titel och författare krävs.');
-
-            const action = bookId ? 'update' : 'add';
-            const body = new URLSearchParams({ action, book_id: bookId, title, author });
-
-            fetch('../actions/wishlist-api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body
-            })
-                .then(response => response.json())
-                .then(() => {
-                    fetchWishlist();
-                    resetForm();
-                });
-        });
-
-        window.editBook = (bookId, title, author) => {
-            bookIdInput.value = bookId;
-            titleInput.value = title;
-            authorInput.value = author;
-            formTitle.textContent = 'Redigera';
-
-            resetFormButton.classList.remove('hidden');
-        };
-
-        window.deleteBook = (bookId) => {
-            if (!confirm('Är du säker på att du vill ta bort den här boken?')) return;
-
-            fetch('../actions/wishlist-api.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ action: 'delete', book_id: bookId })
-            })
-                .then(response => response.json())
-                .then(() => fetchWishlist());
-        };
-
-        function resetForm() {
-            wishlistForm.reset();
-            bookIdInput.value = '';
-            formTitle.textContent = 'Lägg till';
-            resetFormButton.classList.add('hidden');
-        }
-
-        resetFormButton.addEventListener('click', () => {
-            resetForm();
-        });
-    });
-</script>
+</html>
