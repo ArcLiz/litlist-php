@@ -1,0 +1,155 @@
+@import url("https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Vollkorn:ital,wght@0,400..900;1,400..900&family=Whisper&family=WindSong:wght@400;500&display=swap");
+
+/* Custom Fonts */
+
+.windsong {
+  font-family: "WindSong", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.whisper {
+  font-family: "Whisper", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.vollkorn {
+  font-family: "Vollkorn", serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+.afacad {
+  font-family: "Afacad", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+/* Custom CSS */
+.overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120%;
+  padding: 1rem;
+  color: white;
+  text-align: center;
+}
+
+.image-container {
+  position: relative;
+}
+
+/* Hamburger Menu */
+.hamburger {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.hamburger-top,
+.hamburger-middle,
+.hamburger-bottom {
+  position: absolute;
+  width: 24px;
+  height: 2px;
+  top: 0;
+  left: 0;
+  background: #fff;
+  transform: rotate(0);
+  transition: all 0.5s;
+}
+
+.hamburger-middle {
+  transform: translateY(7px);
+}
+
+.hamburger-bottom {
+  transform: translateY(14px);
+}
+
+.open {
+  transform: rotate(90deg);
+}
+
+.open .hamburger-top {
+  transform: rotate(45deg) translateY(6px) translateX(6px);
+}
+
+.open .hamburger-middle {
+  display: none;
+}
+
+.open .hamburger-bottom {
+  transform: rotate(-45deg) translateY(6px) translateX(-6px);
+}
+
+#context-menu {
+  z-index: 1000; /* Se till att menyn ligger ovanpå andra element */
+  cursor: pointer; /* Visa att menyn är klickbar */
+}
+
+.fade-in {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+
+.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.7s ease, visibility 0s linear 0.7s;
+}
+
+.book-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: start;
+}
+
+.book {
+  width: 50px; /* Justera bredden på boken */
+  height: 220px; /* Justera höjden på boken */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.book-title {
+  font-size: 14px;
+  font-weight: bold;
+  writing-mode: vertical-rl;
+  color: #333;
+  text-align: center;
+  position: absolute;
+  top: 10px;
+}
+
+.book p {
+  font-size: 12px;
+  color: #555;
+}
+
+/* READ CALENDAR */
+.calendar th,
+.calendar td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.calendar .book-finished {
+  background-color: #00bfae;
+  color: white;
+  font-weight: bold;
+}
