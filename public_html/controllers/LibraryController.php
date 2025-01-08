@@ -15,9 +15,25 @@ class LibraryController
         $book = new Book($this->conn);
         $book->user_id = $user_id;
 
-        $query = "SELECT * FROM " . $book->table_name . " WHERE user_id = ?";
+        // Kontrollera om användaren ingår i ett hushåll
+        $householdQuery = "SELECT household_id FROM auth_users WHERE id = ?";
+        $householdStmt = $this->conn->prepare($householdQuery);
+        $householdStmt->bind_param("i", $user_id);
+        $householdStmt->execute();
+        $householdResult = $householdStmt->get_result();
+        $household_id = $householdResult->fetch_assoc()['household_id'] ?? null;
 
-        // Om ett sökord finns, inkludera det i WHERE-klausulen för title, author, och series
+        // Bygg SQL-query baserat på om användaren ingår i ett hushåll
+        $query = "SELECT * FROM " . $book->table_name . " WHERE ";
+        if ($household_id) {
+            // Använd hushållets böcker
+            $query .= "household_id = ?";
+        } else {
+            // Använd användarens egna böcker
+            $query .= "user_id = ?";
+        }
+
+        // Lägg till sökvillkor
         if ($searchTerm) {
             $query .= " AND (title LIKE ? OR author LIKE ? OR series LIKE ?)";
         }
@@ -26,14 +42,20 @@ class LibraryController
 
         $stmt = $this->conn->prepare($query);
 
+        // Bind parametrar baserat på om vi använder household_id eller user_id
         if ($searchTerm) {
-            // Förbered sökordet med % för LIKE-sökning
             $searchTerm = "%$searchTerm%";
-            // Binda parametrarna (user_id, searchTerm för title, author och series, offset, limit)
-            $stmt->bind_param("isssii", $user_id, $searchTerm, $searchTerm, $searchTerm, $offset, $limit);
+            if ($household_id) {
+                $stmt->bind_param("isssii", $household_id, $searchTerm, $searchTerm, $searchTerm, $offset, $limit);
+            } else {
+                $stmt->bind_param("isssii", $user_id, $searchTerm, $searchTerm, $searchTerm, $offset, $limit);
+            }
         } else {
-            // Binda parametrarna utan sökterm
-            $stmt->bind_param("iii", $user_id, $offset, $limit);
+            if ($household_id) {
+                $stmt->bind_param("iii", $household_id, $offset, $limit);
+            } else {
+                $stmt->bind_param("iii", $user_id, $offset, $limit);
+            }
         }
 
         $stmt->execute();
@@ -70,16 +92,15 @@ class LibraryController
         return $row['total'];
     }
 
-    // LibraryController.php
     public function getTopUsersByBooks($limit = 4)
     {
         $sql = "
-        SELECT u.id AS user_id, u.username, u.avatar, COUNT(b.id) AS book_count
-        FROM auth_users u
-        LEFT JOIN library_books b ON u.id = b.user_id
-        GROUP BY u.id
-        ORDER BY book_count DESC
-        LIMIT ?";
+    SELECT u.id AS user_id, u.username, u.display_name, u.avatar, COUNT(b.id) AS book_count
+    FROM auth_users u
+    LEFT JOIN library_books b ON u.id = b.user_id
+    GROUP BY u.id
+    ORDER BY book_count DESC
+    LIMIT ?";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param('i', $limit);

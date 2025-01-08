@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 include_once '../../inc/dbmysqli.php';
 include_once '../models/User.php';
 

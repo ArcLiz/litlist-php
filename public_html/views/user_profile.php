@@ -1,4 +1,5 @@
 <?php
+session_start();
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
@@ -11,11 +12,7 @@ include_once '../models/Wishlist.php';
 include_once '../models/GuestbookMessage.php';
 include_once '../controllers/ReadController.php';
 
-// Sätt profil-ID från URL:en
-$profile_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : $_SESSION['user_id'];
-if (!$profile_id) {
-    die("Profil-ID saknas eller är ogiltigt.");
-}
+$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : $_SESSION['user_id'];
 
 // Hantera sidnummer och andra parametrar
 $page = isset($_GET['page']) ? intval($_GET['page']) : 1;
@@ -32,34 +29,34 @@ $libraryController = new LibraryController($conn);
 $authController = new AuthController($conn);
 
 // Hämta användarnamn för profil-ID
-$profile_user = $authController->getUsernameById($profile_id);
-$profile_bio = $authController->getBioById($profile_id);
-$profile_avatar = $authController->getAvatarById($profile_id);
-$isPublic = $authController->showReadingHistoryPrivacyForm($profile_id);
-if (!$profile_user) {
-    die("Användaren hittades inte. Kontrollera att user_id är korrekt: " . $profile_id);
+$user_user = $authController->getUsernameById($user_id);
+$user_bio = $authController->getBioById($user_id);
+$user_avatar = $authController->getAvatarById($user_id);
+$isPublic = $authController->showReadingHistoryPrivacyForm($user_id);
+if (!$user_user) {
+    die("Användaren hittades inte. Kontrollera att user_id är korrekt: " . $user_id);
 }
 
 // Hämta böcker baserat på profil-ID
-$booksResult = $libraryController->getAllBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
-$totalBooks = $libraryController->getTotalBooksByUser($profile_id, $searchTerm);
+$booksResult = $libraryController->getAllBooksByUser($user_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$totalBooks = $libraryController->getTotalBooksByUser($user_id, $searchTerm);
 $totalPages = ceil($totalBooks / $limit);
 
 
 // WISHLIST
 $wishlistModel = new Wishlist($conn);
 
-$wishlist = $wishlistModel->getWishlist($profile_id);
+$wishlist = $wishlistModel->getWishlist($user_id);
 
 // GUESTBOOK
-$receiver_id = $profile_id;
+$receiver_id = $user_id;
 $guestbook = new GuestbookMessage($conn);
 
 $messages = $guestbook->getMessagesForUser($receiver_id);
 
 // READ BOOKS
-$booksResult = $readController->getAllReadBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
-$booksInYear = $readController->getBooksReadThisYear($profile_id);
+$booksResult = $readController->getAllReadBooksByUser($user_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$booksInYear = $readController->getBooksReadThisYear($user_id);
 
 $query = "SELECT title, date_finished FROM library_read WHERE user_id = ?";
 $stmt = $conn->prepare($query);
@@ -86,15 +83,15 @@ include '../components/header.php';
         <!-- Welcome, Profile Details -->
         <div class="space-y-4 md:space-y-0 md:flex md:flex-row justify-between p-6">
             <div class="md:w-4/5 mx-auto">
-                <img src="../uploads/avatars/<?php echo $profile_avatar ?>" alt=""
+                <img src="../uploads/avatars/<?php echo $user_avatar ?>" alt=""
                     class="h-24 w-24 md:h-40 md:w-40 rounded-full border-4 border-teal-600 mb-4 mx-auto">
                 <h1 class="uppercase text-2xl text-center ml-3">
-                    Välkommen till <?php echo htmlspecialchars($profile_user); ?>
+                    Välkommen till <?php echo htmlspecialchars($user_user); ?>
                 </h1>
                 <p class="text-center">
-                    <?php echo htmlspecialchars($profile_user); ?> har <?php echo $totalBooks ?> böcker
+                    <?php echo htmlspecialchars($user_user); ?> har <?php echo $totalBooks ?> böcker
                     registrerade.<br><br>
-                    <?php echo htmlspecialchars($profile_bio); ?>
+                    <?php echo htmlspecialchars($user_bio); ?>
                 </p>
             </div>
             <div class="w-full grid grid-cols-2 gap-4">
@@ -145,7 +142,7 @@ include '../components/header.php';
                                     </div>
 
                                     <!-- Visa papperskorg om inloggad användare är samma som sender_id eller profile_id -->
-                                    <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $profile_id): ?>
+                                    <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $user_id): ?>
                                         <form method="POST" action="../actions/delete_message.php"
                                             class="absolute bottom-1 right-2">
                                             <input type="hidden" name="message_id" value="<?= $message['id'] ?>">

@@ -140,7 +140,7 @@ include '../components/header.php';
                             onclick="window.location.href='library_book.php?id=<?= $row['id'] ?>';">
                             <!-- Kontrollera om det finns en cover_image, annars använd en standardbild -->
                             <img src="<?= !empty($row['cover_image']) ? '../uploads/book_covers/' . htmlspecialchars($row['cover_image']) : '../uploads/book_covers/nocover.png' ?>"
-                                alt="" class="h-[90px] pr-2">
+                                alt="" class="h-[90px]">
 
                             <div class="flex flex-col text-start w-3/4">
                                 <p class="text-neutral-800 pt-1"><?= htmlspecialchars($row['title']) ?></p>

@@ -15,7 +15,6 @@ require_once('../../inc/dbmysqli.php');
 
 $book = new Book($conn);
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $book->title = $_POST['title'];
     $book->author = $_POST['author'];
@@ -27,8 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $book->series = $_POST['series'];
     $book->series_number = $_POST['series_number'];
     $book->user_id = $_SESSION['user_id'];
+    $book->household_id = $_SESSION['household_id'] ?? null;
 
-    // Handling file upload
+
+    // COVER UPLOAD
     if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] === UPLOAD_ERR_OK) {
         $fileTmpPath = $_FILES['cover_image']['tmp_name'];
         $fileName = time() . "_" . $_FILES['cover_image']['name'];
@@ -63,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Only image files (JPEG, PNG, GIF) are allowed.";
         }
     } else {
-        // Retain existing cover image if no new image is uploaded
         if (isset($_POST['existing_cover_image']) && !empty($_POST['existing_cover_image'])) {
             $book->cover_image = $_POST['existing_cover_image'];
         }
@@ -115,6 +115,12 @@ include '../components/header.php';
         <!-- Hidden input for existing cover image -->
         <input type="hidden" name="existing_cover_image"
             value="<?= isset($book->cover_image) ? $book->cover_image : ''; ?>">
+
+        <!-- Hidden input för household_id -->
+        <input type="hidden" name="household_id"
+            value="<?= isset($book->household_id) ? $book->household_id : ($_SESSION['household_id'] ?? ''); ?>">
+
+
 
         <div>
             <label for="title" class="block text-sm font-medium text-gray-700">Titel</label>

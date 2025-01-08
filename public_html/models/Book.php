@@ -17,6 +17,7 @@ class Book
     public $series;
     public $series_number;
     public $cover_image;
+    public $household_id;
 
     public function __construct($db)
     {
@@ -27,12 +28,11 @@ class Book
     public function create()
     {
         $query = "INSERT INTO " . $this->table_name . "
-              (title, author, genre, user_id, published_year, created_at, description, comment, location, series, series_number, cover_image) 
-              VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?)";
+              (title, author, genre, user_id, published_year, created_at, description, comment, location, series, series_number, cover_image, household_id) 
+              VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $this->conn->prepare($query);
 
-        // Sanitize inputs
         $this->title = htmlspecialchars(strip_tags($this->title));
         $this->author = htmlspecialchars(strip_tags($this->author));
         $this->genre = htmlspecialchars(strip_tags($this->genre));
@@ -45,9 +45,10 @@ class Book
         $this->series_number = htmlspecialchars(strip_tags($this->series_number));
         $this->cover_image = htmlspecialchars(strip_tags($this->cover_image));
 
-        // Bind parameters using `bind_param` for `mysqli`
+        $this->household_id = ($this->household_id && $this->household_id != 0) ? htmlspecialchars(strip_tags($this->household_id)) : NULL;
+
         $stmt->bind_param(
-            "sssisssssss",
+            "sssiisssssss",
             $this->title,
             $this->author,
             $this->genre,
@@ -58,16 +59,17 @@ class Book
             $this->location,
             $this->series,
             $this->series_number,
-            $this->cover_image
+            $this->cover_image,
+            $this->household_id
         );
 
-        // Execute query
         if ($stmt->execute()) {
             return true;
         }
 
         return false;
     }
+
 
     // Read all books by user
     public function read()
@@ -101,6 +103,7 @@ class Book
             $this->series = $row['series'];
             $this->series_number = $row['series_number'];
             $this->cover_image = $row['cover_image'];
+            $this->household_id = $row['household_id'];
         }
     }
 

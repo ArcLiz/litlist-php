@@ -20,7 +20,7 @@
 <body class="flex flex-col min-h-screen overflow-x-hidden">
     <!-- Navigation -->
     <header class="bg-neutral-900 text-white">
-        <nav class="md:container mx-auto p-2 flex items-center">
+        <nav class="lg:container mx-auto p-2 flex items-center">
             <!-- LAPTOP / DESKTOP -->
             <div class="flex w-screen justify-between items-center">
                 <!-- Logo -->
@@ -47,10 +47,16 @@
 
 
                     <!-- Links (conditionally shown based on session) -->
-                    <div class="hidden md:flex items-center space-x-5 uppercase afacad tracking-wider">
+                    <div class="hidden lg:flex items-center space-x-5 uppercase afacad tracking-wider">
                         <?php if (isset($_SESSION['user_id'])): ?>
 
                             <?php $username = $_SESSION['username']; ?>
+                            <a href="/views/home.php" class="hover:text-teal-400 hover:underline">
+                                Hem
+                            </a>
+                            <a href="/views/user_list.php" class="hover:text-teal-400 hover:underline">
+                                Vänner
+                            </a>
                             <a href="/views/user_profile.php" class="hover:text-teal-400 hover:underline">
                                 <?php echo htmlspecialchars($username); ?>
                             </a>
@@ -73,8 +79,8 @@
                     </div>
 
                     <!-- Hamburger Button -->
-                    <div class="md:hidden ml-auto my-auto px-3">
-                        <button id="menu-btn" type="button" class="z-40 block hamburger md:hidden focus:outline-none">
+                    <div class="lg:hidden ml-auto my-auto px-3">
+                        <button id="menu-btn" type="button" class="z-40 block hamburger lg:hidden focus:outline-none">
                             <span class="hamburger-top"></span>
                             <span class="hamburger-middle"></span>
                             <span class="hamburger-bottom"></span>
@@ -87,9 +93,10 @@
             <!-- MOBILE / TABLET Menu -->
             <div id="menu"
                 class="z-20 absolute top-0 bottom-0 left-0 hidden flex-col self-end w-full min-h-screen pb-1 pt-32 px-12 space-y-3 text-2xl text-white uppercase bg-black">
-                <a href="/views/home.php" class="hover:text-teal-400">Hem</a>
 
                 <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="/views/home.php" class="hover:text-teal-400">Hem</a>
+                    <a href="/views/user_list.php" class="hover:text-teal-400">Vänner</a>
                     <a href="/views/user_profile.php"
                         class="hover:text-teal-400 border-t border-neutral-800 pt-2 "><?php echo htmlspecialchars($username); ?></a>
                     <a href="/views/library_table.php" class="hover:text-teal-400">Bibliotek</a>
@@ -98,8 +105,8 @@
                         class="hover:text-teal-400 border-t border-neutral-800 pt-2 text-rose-300">Logga
                         ut</a>
                 <?php else: ?>
-                    <a href="/views/auth_signup.php" class="hover:text-teal-400">Skapa konto</a>
-                    <a href="/views/auth_signin.php" class="hover:text-teal-400">Logga in</a>
+                    <a href="../index.php" class="hover:text-teal-400">Skapa konto</a>
+                    <a href="../index.php" class="hover:text-teal-400">Logga in</a>
                 <?php endif; ?>
             </div>
         </nav>
@@ -168,9 +175,9 @@
 
     <!-- Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg w-11/12 md:w-1/3">
+        <div class="bg-white rounded-lg shadow-lg w-11/12 lg:w-1/3">
             <div
-                class="bg-gray-100 uppercase text-center tracking-wider text-gray-500 rounded-t-lg p-2 hidden md:block">
+                class="bg-gray-100 uppercase text-center tracking-wider text-gray-500 rounded-t-lg p-2 hidden lg:block">
                 <p>Möjlig dublett</p>
             </div>
             <div class="p-4">

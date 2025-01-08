@@ -1,4 +1,5 @@
 <?php
+session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -51,7 +52,7 @@ include '../components/header.php';
 <!-- CONTENT HERE -->
 <main class="grow w-screen min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex justify-center">
     <div class="bg-white p-6 min-h-screen w-full md:w-2/3">
-        <div class="text-right mb-5 flex md:justify-between">
+        <div class="text-right mb-5 flex justify-center md:justify-end">
             <div></div>
             <div class="border p-3 rounded-lg bg-neutral-100 afacad uppercase tracking-wide">
                 <label for="reading-history-checkbox ">Offentlig läshistorik</label>

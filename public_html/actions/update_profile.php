@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['display_name'] = $user->display_name;
             $_SESSION['bio'] = $user->bio;
             $_SESSION['avatar'] = $user->avatar;
-            header("Location: ../views/user_profile.php");
+            header("Location: " . $_SERVER['HTTP_REFERER']);
             exit();
         } else {
             echo "Failed to update profile.";

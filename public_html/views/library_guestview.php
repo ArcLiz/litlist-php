@@ -1,7 +1,5 @@
 <?php
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
-error_reporting(E_ALL);
+session_start();
 
 include_once '../../inc/dbmysqli.php';
 include_once '../controllers/LibraryController.php';
@@ -125,7 +123,7 @@ include '../components/header.php';
         </div>
 
         <!-- CONTAINER GUESTBOOK / READ BOOKS -->
-        <div class="border-t md:mt-6 md:pt-6 md:p-6">
+        <div id="guestbook-container" class="border-t md:mt-6 md:pt-6 md:p-6">
             <!-- Guestbook Container-->
             <div class="bg-white/50 p-6 md:rounded-lg shadow-md md:space-x-4">
                 <h1 class="text-center md:text-left text-3xl font-bold text-teal-700 whisper mb-4">
@@ -254,7 +252,7 @@ include '../components/header.php';
 
         <!-- PAGE HEADER -->
         <div class="flex justify-between items-center mb-2">
-            <form method="GET" class="mb-4 flex items-center relative">
+            <form id="search-form" method="GET" class="mb-4 flex items-center relative">
                 <input type="text" name="search" value="<?= htmlspecialchars($searchTerm) ?>"
                     placeholder="Sök efter böcker..."
                     class="border border-gray-300 rounded-full h-10 w-48 px-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent">
@@ -404,6 +402,29 @@ include '../components/header.php';
     </div>
     </div>
 </main>
+
+<script>
+    // Funktion för att hämta URL-parametrar
+    function getUrlParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // Kontrollera om "search" finns i URL:en
+    const searchParam = getUrlParameter('search');
+    const guestbook = document.getElementById('guestbook-container');
+    const readbooks = document.getElementById('readbooks-container');
+
+    // Om "search" finns och har ett värde, dölj sektionerna
+    if (searchParam && searchParam.trim() !== '') {
+        guestbook.classList.add('hidden');
+        readbooks.classList.add('hidden');
+    } else {
+        // Visa sektionerna om "search" inte finns
+        guestbook.classList.remove('hidden');
+        readbooks.classList.remove('hidden');
+    }
+</script>
 
 <!-- FOOTER -->
 <?php include '../components/footer.php'; ?>

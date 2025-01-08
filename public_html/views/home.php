@@ -1,18 +1,15 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
 session_start();
 
+include_once '../../inc/dbmysqli.php';
+include_once '../controllers/LibraryController.php';
+include '../components/editProfile_form.php';
 
 if (isset($_SESSION['user_id'])) {
     $username = $_SESSION['username'];
 } else {
     $username = null;
 }
-
-include_once '../../inc/dbmysqli.php';
-include_once '../controllers/LibraryController.php';
-include '../components/editProfile_form.php';
 
 $libraryController = new LibraryController($conn);
 $topUsers = $libraryController->getTopUsersByBooks(4);
@@ -21,18 +18,18 @@ include '../components/header.php';
 ?>
 
 <!-- Container -->
-<main class="grow w-screen min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex">
+<main class="grow min-h-screen bg-gradient-to-b from-neutral-900 to-neutral-700 flex">
     <!-- Header -->
     <div class="mx-auto">
         <!-- Välkommen -->
         <div
-            class="bg-white w-screen flex flex-col justify-center md:w-auto md:flex-row md:justify-between md:mt-24 p-10 md:rounded-2xl shadow-lg shadow-neutral-900">
+            class="bg-white flex flex-col justify-center md:w-auto md:flex-row md:justify-between md:mt-24 p-10 md:rounded-2xl shadow-lg shadow-neutral-900">
             <div class="flex flex-col justify-between space-y-4 ">
                 <h1 class="afacad text-3xl font-bold text-teal-400">
                     <?php
                     // Hämta aktuell tid
-                    $hour = date('H'); // 24-timmarsformat (00 till 23)
-                    
+                    $hour = date('H');
+
                     if ($hour >= 5 && $hour < 12) {
                         $greeting = "God morgon";
                     } elseif ($hour >= 12 && $hour < 18) {
@@ -47,8 +44,6 @@ include '../components/header.php';
                 </h1>
                 <p>Vad vill du göra just nu?</p>
 
-
-
                 <div class="text-sm flex-col flex space-y-4">
                     <a href="user_read.php"
                         class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md text-center">Lästa
@@ -61,9 +56,6 @@ include '../components/header.php';
                     <button id="editProfileBtn"
                         class="mt-4 bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">Kontoinställningar</button>
                 </div>
-
-
-
             </div>
             <div class="mx-auto mt-4 md:mr-5">
                 <img src="../assets/welcome.png" alt="" class="h-[300px]">
@@ -79,23 +71,25 @@ include '../components/header.php';
                 <h2 class="text-xl md:text-center afacad">Nedan hittar du våra populäraste användare.</h2>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 md:mx-auto gap-6 md:gap-10 mt-10">
+            <div class="grid grid-cols-2 lg:grid-cols-4 md:mx-auto gap-6 md:gap-10 mt-10">
                 <?php while ($row = $topUsers->fetch_assoc()): ?>
-                    <div
-                        class="border border-teal-700 rounded-t-full p-4 hover:scale-105 hover:shadow hover:shadow-neutral-800">
-                        <img src="<?= $row['avatar'] ? '../uploads/avatars/' . htmlspecialchars($row['avatar']) : '/assets/libbg.jpg' ?>"
-                            alt="Avatar" class="rounded-full h-[100px] w-[100px] mx-auto">
-                        <h1 class="text-center text-semibold afacad text-2xl text-teal-400">
-                            <?= htmlspecialchars($row['username']) ?>
-                        </h1>
-                        <p class="text-sm text-center text-neutral-400 -mt-2">
-                            @<?= htmlspecialchars(strtolower($row['username'])) ?>
-                        </p>
-                        <a href="library_guestview.php?user_id=<?= $row['user_id'] ?>&sort_by=title&sort_order=ASC"
-                            class="text-center text-teal-500 hover:underline block mt-2">
-                            <?= htmlspecialchars($row['book_count']) ?> böcker
-                        </a>
-                    </div>
+                    <a href="library_guestview.php?user_id=<?= $row['user_id'] ?>&sort_by=title&sort_order=ASC"
+                        class="block">
+                        <div
+                            class="border bg-white/5 border-teal-700 rounded-t-full p-4 hover:scale-105 hover:shadow hover:shadow-neutral-800">
+                            <img src="<?= $row['avatar'] ? '../uploads/avatars/' . htmlspecialchars($row['avatar']) : '/assets/noprofile.jpg' ?>"
+                                alt="Avatar" class="rounded-full h-[100px] w-[100px] mx-auto">
+                            <h1 class="text-center text-xl text-semibold afacad text-teal-400">
+                                <?= htmlspecialchars($row['display_name'] ?: $row['username']) ?>
+                            </h1>
+                            <p class="text-sm text-center text-neutral-400 -mt-2">
+                                @<?= htmlspecialchars(strtolower($row['username'])) ?>
+                            </p>
+                            <p class="text-center text-teal-500 block mt-2">
+                                <?= htmlspecialchars($row['book_count']) ?> böcker
+                            </p>
+                        </div>
+                    </a>
                 <?php endwhile; ?>
             </div>
 

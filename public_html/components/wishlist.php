@@ -15,9 +15,6 @@ $user_id = $_SESSION['user_id'];
     <div class="bg-white p-4 rounded-lg shadow-md w-96">
         <div class="flex justify-between items-start">
             <h2 class="text-xl font-bold mb-4 text-teal-500">Din Önskelista</h2>
-            <button type="button" id="closeWishlistModal" class="text-gray-800 hover:text-red-700 py-1 px-2 rounded-md">
-                <i class="fa-solid fa-rectangle-xmark"></i>
-            </button>
         </div>
         <ul id="wishlist" class="p-2 border rounded mb-5">
             <!-- Dynamic Wishlist -->
@@ -36,17 +33,21 @@ $user_id = $_SESSION['user_id'];
                 <label for="author" class="block text-gray-700">Författare:</label>
                 <input type="text" id="author" class="border rounded w-full py-2 px-3" required>
             </div>
-            <div class="flex space-x-2">
-                <button type="button" id="submitWishlistForm"
-                    class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">
-                    Lägg till
-                </button>
+            <div class="flex space-x-2 justify-between items-center">
+                <div>
+                    <button type="button" id="submitWishlistForm"
+                        class="bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md">
+                        Lägg till
+                    </button>
+                    <!-- Lägg till knappen för att återställa formuläret -->
+                    <button type="button" id="resetFormButton"
+                        class="bg-gray-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md hidden">
+                        Återställ
+                    </button>
+                </div>
+                <i id="closeWishlistModal"
+                    class="fa-solid fa-xmark text-red-500 text-2xl cursor-pointer hover:text-red-700"></i>
 
-                <!-- Lägg till knappen för att återställa formuläret -->
-                <button type="button" id="resetFormButton"
-                    class="bg-gray-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md hidden">
-                    Återställ
-                </button>
             </div>
         </form>
     </div>
@@ -79,6 +80,7 @@ $user_id = $_SESSION['user_id'];
         closeWishlistModal.addEventListener('click', () => {
             wishlistModal.classList.add('hidden');
             resetForm();
+            location.reload();
         });
 
         // Hämta önskelista från API
