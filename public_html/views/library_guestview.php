@@ -1,6 +1,9 @@
 <?php
 session_start();
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 include_once '../../inc/dbmysqli.php';
 include_once '../controllers/LibraryController.php';
 include_once '../controllers/AuthController.php';
@@ -125,13 +128,14 @@ include '../components/header.php';
         <!-- CONTAINER GUESTBOOK / READ BOOKS -->
         <div id="guestbook-container" class="border-t md:mt-6 md:pt-6 md:p-6">
             <!-- Guestbook Container-->
-            <div class="bg-white/50 p-6 md:rounded-lg shadow-md md:space-x-4">
-                <h1 class="text-center md:text-left text-3xl font-bold text-teal-700 whisper mb-4">
-                    Gästbok
-                </h1>
-                <div class="md:space-x-4 flex flex-col md:flex-row">
-                    <!-- Skicka meddelande formulär (endast för inloggade användare) -->
-                    <?php if (isset($_SESSION['user_id'])): ?>
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <div class="bg-white/50 p-6 md:rounded-lg shadow-md md:space-x-4">
+                    <h1 class="text-center md:text-left text-3xl font-bold text-teal-700 whisper mb-4">
+                        Gästbok
+                    </h1>
+                    <div class="md:space-x-4 flex flex-col md:flex-row">
+                        <!-- Skicka meddelande formulär (endast för inloggade användare) -->
+
                         <form method="POST" action="../actions/send_message.php"
                             class="flex md:w-1/3 pb-4 md:pb-0">
                             <textarea name="message" placeholder="Skriv här.." required
@@ -142,44 +146,46 @@ include '../components/header.php';
                                 Skicka
                             </button>
                         </form>
-                    <?php endif; ?>
 
-                    <!-- Gästboksmeddelanden -->
-                    <div class="guestbook-messages md:grid md:grid-cols-2 md:gap-4 md:w-2/3">
-                        <?php if ($messages->num_rows > 0): ?>
-                            <?php while ($message = $messages->fetch_assoc()): ?>
-                                <div
-                                    class="message p-3 bg-white/70 rounded-lg shadow-md flex items-start space-x-3 relative">
-                                    <img src="../uploads/avatars/<?= htmlspecialchars($message['avatar']) ?>" alt="Avatar"
-                                        class="w-10 h-10 rounded-full object-cover border-2 border-teal-500 hidden md:block">
-                                    <div class="">
-                                        <p><strong class="text-teal-600">Hälsning från
-                                                <?= htmlspecialchars($message['username']) ?><span
-                                                    class="text-neutral-800 font-semibold"></span></strong></p>
-                                        <p class="text-gray-700 text-sm"><?= nl2br(htmlspecialchars($message['message'])) ?></p>
-                                        <p class="text-xs text-gray-500">
-                                            <em><?= date("d M Y, H:i", strtotime($message['created_at'])) ?></em>
-                                        </p>
+
+                        <!-- Gästboksmeddelanden -->
+                        <div class="guestbook-messages md:grid md:grid-cols-2 md:gap-4 md:w-2/3">
+                            <?php if ($messages->num_rows > 0): ?>
+                                <?php while ($message = $messages->fetch_assoc()): ?>
+                                    <div
+                                        class="message p-3 bg-white/70 rounded-lg shadow-md flex items-start space-x-3 relative">
+                                        <img src="../uploads/avatars/<?= htmlspecialchars($message['avatar']) ?>" alt="Avatar"
+                                            class="w-10 h-10 rounded-full object-cover border-2 border-teal-500 hidden md:block">
+                                        <div class="">
+                                            <p><strong class="text-teal-600">Hälsning från
+                                                    <?= htmlspecialchars($message['username']) ?><span
+                                                        class="text-neutral-800 font-semibold"></span></strong></p>
+                                            <p class="text-gray-700 text-sm"><?= nl2br(htmlspecialchars($message['message'])) ?></p>
+                                            <p class="text-xs text-gray-500">
+                                                <em><?= date("d M Y, H:i", strtotime($message['created_at'])) ?></em>
+                                            </p>
+                                        </div>
+
+                                        <!-- Visa papperskorg om inloggad användare är samma som sender_id eller profile_id -->
+                                        <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $profile_id): ?>
+                                            <form method="POST" action="../actions/delete_message.php"
+                                                class="absolute bottom-1 right-2">
+                                                <input type="hidden" name="message_id" value="<?= $message['id'] ?>">
+                                                <button type="submit" class="text-neutral-700 text-sm hover:text-red-700">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p class="text-gray-500">Inga meddelanden ännu.</p>
+                            <?php endif; ?>
+                        </div>
 
-                                    <!-- Visa papperskorg om inloggad användare är samma som sender_id eller profile_id -->
-                                    <?php if ($_SESSION['user_id'] == $message['sender_id'] || $_SESSION['user_id'] == $profile_id): ?>
-                                        <form method="POST" action="../actions/delete_message.php"
-                                            class="absolute bottom-1 right-2">
-                                            <input type="hidden" name="message_id" value="<?= $message['id'] ?>">
-                                            <button type="submit" class="text-neutral-700 text-sm hover:text-red-700">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p class="text-gray-500">Inga meddelanden ännu.</p>
-                        <?php endif; ?>
                     </div>
                 </div>
-            </div>
+            <?php endif; ?>
 
             <!-- READ BOOKS (IF PUBLIC) -->
             <?php

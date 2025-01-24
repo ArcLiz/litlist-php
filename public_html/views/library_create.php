@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fileType = mime_content_type($fileTmpPath);
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
 
+        // Check if the file is a valid image
         if (in_array($fileType, $allowedTypes)) {
             // Convert to WebP
             $image = null;
@@ -68,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $book->cover_image = $_POST['existing_cover_image'];
         }
     }
+
 
     // Create or update book based on whether ID is provided
     if (isset($_POST['book_id']) && !empty($_POST['book_id'])) {
@@ -193,11 +195,25 @@ include '../components/header.php';
             <label for="cover_image" class="block text-sm font-medium text-gray-700">Omslagsbild (valfritt)</label>
             <input type="file" name="cover_image" id="cover_image"
                 class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm"
-                accept="image/*">
+                accept="image/*" onchange="loadImage(event)">
+
             <?php if (isset($book->cover_image) && !empty($book->cover_image)) { ?>
                 <p class="mt-2 text-sm text-gray-500 text-center">Nuvarande omslagsbild:</p>
                 <img src="../uploads/book_covers/<?= $book->cover_image ?>" alt="Cover Image"
-                    class="max-w-[120px] h-auto rounded-md mx-auto">
+                    class="max-w-[120px] h-auto rounded-md mx-auto" id="currentImage">
+
+                <div class="mt-4 text-center">
+                    <button type="button" onclick="rotateImage(-90)"
+                        class="text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-md">Rotera Vänster</button>
+                    <button type="button" onclick="rotateImage(90)"
+                        class="text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-md">Rotera Höger</button>
+                </div>
+
+                <!-- Canvas för rotering -->
+                <canvas id="imageCanvas" class="mx-auto mt-4" style="max-width: 120px;"></canvas>
+
+                <input type="hidden" name="rotated_cover_image" id="rotated_cover_image">
+
             <?php } else { ?>
                 <p class="mt-2 text-sm text-red-500 text-center">Nuvarande omslagsbild saknas</p>
                 <img src="../uploads/book_covers/nocover.png" alt="No Cover Image"
@@ -205,11 +221,57 @@ include '../components/header.php';
             <?php } ?>
         </div>
 
+
         <button type="submit"
             class="mt-4 block w-full py-2 rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
             <?= isset($book->id) ? 'Update Book' : 'Add Book' ?>
         </button>
     </form>
 </div>
+
+<script>
+    let imgElement = null;
+    let canvas = document.getElementById('imageCanvas');
+    let ctx = canvas.getContext('2d');
+    let currentRotation = 0;
+
+    function loadImage(event) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            imgElement = new Image();
+            imgElement.onload = function () {
+                canvas.width = imgElement.width;
+                canvas.height = imgElement.height;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(imgElement, 0, 0);
+            };
+            imgElement.src = e.target.result;
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    function rotateImage(degrees) {
+        if (imgElement) {
+            currentRotation += degrees;
+            currentRotation = currentRotation % 360;
+
+            canvas.width = imgElement.width;
+            canvas.height = imgElement.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate((currentRotation * Math.PI) / 180);
+            ctx.drawImage(imgElement, -imgElement.width / 2, -imgElement.height / 2);
+            ctx.restore();
+
+            const rotatedImage = canvas.toDataURL('image/webp');
+            document.getElementById('rotated_cover_image').value = rotatedImage;
+        }
+    }
+
+</script>
 
 <?php include '../components/footer.php'; ?>

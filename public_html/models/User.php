@@ -10,11 +10,12 @@ class User
     public $username;
     public $password;
     public $email;
-    public $user_category; // FK
+    public $user_category;
     public $created_at;
     public $bio;
     public $display_name;
     public $avatar;
+    public $household_id;
 
     public function __construct($db)
     {
@@ -45,7 +46,9 @@ class User
     // Find existing user
     public function login()
     {
-        $query = "SELECT id, username, password, email, display_name, bio, avatar, user_category, created_at FROM " . $this->table_name . " WHERE username = ? LIMIT 1";
+        $query = "SELECT id, username, password, email, display_name, bio, avatar, user_category, created_at, household_id 
+              FROM " . $this->table_name . " 
+              WHERE username = ? LIMIT 1";
 
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("s", $this->username);
@@ -63,6 +66,7 @@ class User
                 $this->avatar = $row['avatar'];
                 $this->user_category = $row['user_category'];
                 $this->created_at = $row['created_at'];
+                $this->household_id = $row['household_id']; // Lägg till household_id här
 
                 echo "User Data: ";
                 print_r($row);
@@ -71,6 +75,7 @@ class User
         }
         return false;
     }
+
 
     // Fetch user by ID
     public function getUserById($id)

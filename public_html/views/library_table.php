@@ -1,9 +1,6 @@
 <?php
 session_start();
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 include_once '../../inc/dbmysqli.php';
 include_once '../controllers/LibraryController.php';
 include_once '../models/Book.php';

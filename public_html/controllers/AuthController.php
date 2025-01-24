@@ -37,6 +37,7 @@ class AuthController
             $_SESSION['avatar'] = $user->avatar;
             $_SESSION['created_at'] = $user->created_at;
             $_SESSION['user_category'] = $user->user_category;
+            $_SESSION['household_id'] = $user->household_id;
             return true;
         }
         return false;

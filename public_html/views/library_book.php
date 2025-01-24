@@ -28,7 +28,7 @@ include '../components/header.php';
 <main class="grow bg-gradient-to-b from-neutral-900 to-neutral-700">
     <div class="md:mx-auto bg-white md:max-w-[1280px] lg:mt-10 bg-gradient-to-b from-white to-teal-500">
         <!-- Image and Title info -->
-        <div class="p-6 flex flex-col items-center justify-center lg:flex-row lg:justify-between lg:items-start">
+        <div class="p-6 flex flex-col items-center justify-center lg:flex-row lg:justify-between lg:items-center">
             <img src="<?= htmlspecialchars($cover_image) ?>" alt="Bokomslag"
                 class="w-1/2 md:w-1/3 lg:1/4 h-auto object-cover rounded-lg shadow-lg shadow-neutral-800">
             <div class="text-center lg:w-3/4">
@@ -57,30 +57,4 @@ include '../components/header.php';
         <p class="text-white leading-relaxed mb-4"><?= nl2br(htmlspecialchars($book->description)) ?></p>
     </div>
 </main>
-
-<!-- Old
-<div class="container mx-auto bg-white p-8 rounded-lg shadow-lg mt-10">
-    <div class="flex items-start space-x-8">
-        <img src="<?= htmlspecialchars($cover_image) ?>" alt="Bokomslag"
-            class="w-1/4 h-auto object-cover rounded-lg shadow-md">
-        <div class="w-2/3">
-            <h1 class="text-4xl font-bold mb-4"><?= htmlspecialchars($book->title) ?></h1>
-            <p class="text-gray-700 mb-2"><strong>Författare:</strong> <?= htmlspecialchars($book->author) ?></p>
-            <p class="text-gray-700 mb-2"><strong>Genre:</strong> <?= htmlspecialchars($book->genre) ?></p>
-            <p class="text-gray-700 mb-2"><strong>Utgivningsår:</strong> <?= htmlspecialchars($book->published_year) ?>
-            </p>
-            <p class="text-gray-700 mb-2"><strong>Plats:</strong> <?= htmlspecialchars($book->location) ?></p>
-            <?php if ($book->series): ?>
-                <p class="text-gray-700 mb-2"><strong>Serie:</strong> <?= htmlspecialchars($book->series) ?></p>
-                <p class="text-gray-700 mb-2"><strong>Serienummer:</strong> <?= htmlspecialchars($book->series_number) ?>
-                </p>
-            <?php endif; ?>
-            <p class="text-gray-700 mb-2"><strong>Beskrivning:</strong></p>
-            <p class="text-gray-600 leading-relaxed mb-4"><?= nl2br(htmlspecialchars($book->description)) ?></p>
-            <p class="text-gray-700 mb-2"><strong>Kommentarer:</strong></p>
-            <p class="text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($book->comment)) ?></p>
-        </div>
-    </div>
-</div> -->
-
 <?php include '../components/footer.php'; ?>

@@ -145,30 +145,32 @@ include 'components/header.php';
 
         <!-- Quick Links -->
         <div
-            class="flex flex-col justify-center text-white mx-auto mt-10 p-10 mx-10">
+            class="flex flex-col justify-center text-white mx-auto mt-10 p-6 md:p-10 md:mx-10">
             <div>
                 <h1 class="font-semibold text-3xl md:text-center mb-4 text-teal-400 afacad">Inspiration <i
                         class="fa-solid fa-arrow-down text-sm"></i></h1>
                 <h2 class="text-xl md:text-center afacad">Nedan hittar du våra populäraste användare.</h2>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 md:mx-auto gap-10 mt-10">
+            <div class="grid grid-cols-2 lg:grid-cols-4 md:mx-auto gap-6 md:gap-10 mt-10">
                 <?php while ($row = $topUsers->fetch_assoc()): ?>
-                    <div
-                        class="border border-teal-700 rounded-t-full p-4 hover:scale-105 hover:shadow hover:shadow-neutral-800">
-                        <img src="<?= $row['avatar'] ? '../uploads/avatars/' . htmlspecialchars($row['avatar']) : '/assets/libbg.jpg' ?>"
-                            alt="Avatar" class="rounded-full h-[100px] w-[100px] mx-auto">
-                        <h1 class="text-center text-semibold afacad text-2xl text-teal-400">
-                            <?= htmlspecialchars($row['username']) ?>
-                        </h1>
-                        <p class="text-sm text-center text-neutral-400 -mt-2">
-                            @<?= htmlspecialchars(strtolower($row['username'])) ?>
-                        </p>
-                        <a href="views/library_guestview.php?user_id=<?= $row['user_id'] ?>"
-                            class="text-center text-teal-500 hover:underline block mt-2">
-                            <?= htmlspecialchars($row['book_count']) ?> böcker
-                        </a>
-                    </div>
+                    <a href="/views/library_guestview.php?user_id=<?= $row['user_id'] ?>&sort_by=title&sort_order=ASC"
+                        class="block">
+                        <div
+                            class="border bg-white/5 border-teal-700 rounded-t-full p-4 hover:scale-105 hover:shadow hover:shadow-neutral-800">
+                            <img src="<?= $row['avatar'] ? '../uploads/avatars/' . htmlspecialchars($row['avatar']) : '/assets/noprofile.jpg' ?>"
+                                alt="Avatar" class="rounded-full h-[100px] w-[100px] mx-auto">
+                            <h1 class="text-center text-xl text-semibold afacad text-teal-400">
+                                <?= htmlspecialchars($row['display_name'] ?: $row['username']) ?>
+                            </h1>
+                            <p class="text-sm text-center text-neutral-400 -mt-2">
+                                @<?= htmlspecialchars(strtolower($row['username'])) ?>
+                            </p>
+                            <p class="text-center text-teal-500 block mt-2">
+                                <?= htmlspecialchars($row['book_count']) ?> böcker
+                            </p>
+                        </div>
+                    </a>
                 <?php endwhile; ?>
             </div>
 

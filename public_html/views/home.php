@@ -7,8 +7,13 @@ include '../components/editProfile_form.php';
 
 if (isset($_SESSION['user_id'])) {
     $username = $_SESSION['username'];
+    $display_name = $_SESSION['display_name'] ?? null;
+
+    // Välj antingen display_name eller username
+    $welcome_name = $display_name ?: $username;
 } else {
-    $username = null;
+    $welcome_name = null;
+
 }
 
 $libraryController = new LibraryController($conn);
@@ -39,7 +44,7 @@ include '../components/header.php';
                     }
 
                     // Visa hälsningen
-                    echo "$greeting, $username!";
+                    echo "$greeting, $welcome_name!";
                     ?>
                 </h1>
                 <p>Vad vill du göra just nu?</p>
