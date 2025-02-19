@@ -9,24 +9,12 @@ class ReadController
         $this->conn = $conn;
     }
 
-    public function getAllReadBooksByUser($user_id, $offset = 0, $limit = 25, $searchTerm = '', $sortBy = 'date_finished', $sortOrder = 'DESC')
+    public function getAllReadBooksByUser($user_id, $offset = 0, $limit = 25)
     {
-        $query = "SELECT * FROM library_read WHERE user_id = ?";
-
-        if ($searchTerm) {
-            $query .= " AND (title LIKE ? OR author LIKE ?)";
-        }
-
-        $query .= " ORDER BY $sortBy $sortOrder LIMIT ?, ?";
+        $query = "SELECT * FROM library_read WHERE user_id = ? LIMIT ?, ?";
 
         $stmt = $this->conn->prepare($query);
-
-        if ($searchTerm) {
-            $searchTerm = "%$searchTerm%";
-            $stmt->bind_param("issii", $user_id, $searchTerm, $searchTerm, $offset, $limit);
-        } else {
-            $stmt->bind_param("iii", $user_id, $offset, $limit);
-        }
+        $stmt->bind_param("iii", $user_id, $offset, $limit);
 
         $stmt->execute();
         return $stmt->get_result();
@@ -38,7 +26,7 @@ class ReadController
     {
         $sql = "SELECT COUNT(*) AS total FROM library_read WHERE user_id = ? AND (title LIKE ? OR author LIKE ?)";
         $stmt = $this->conn->prepare($sql);
-        $searchTerm = '%' . $searchTerm . '%';  // Gör om sökordet till ett LIKE-mönster
+        $searchTerm = '%' . $searchTerm . '%';
         $stmt->bind_param("iss", $user_id, $searchTerm, $searchTerm);
         $stmt->execute();
         $result = $stmt->get_result();

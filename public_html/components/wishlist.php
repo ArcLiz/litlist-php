@@ -14,7 +14,7 @@ $user_id = $_SESSION['user_id'];
 <div id="wishlistModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10">
     <div class="bg-white p-4 rounded-lg shadow-md w-96">
         <div class="flex justify-between items-start">
-            <h2 class="text-xl font-bold mb-4 text-teal-500">Din Önskelista</h2>
+            <h2 class="text-xl font-bold mb-4 text-teal-500">Din inköpslista</h2>
         </div>
         <ul id="wishlist" class="p-2 border rounded mb-5">
             <!-- Dynamic Wishlist -->
@@ -55,7 +55,7 @@ $user_id = $_SESSION['user_id'];
 
 
 <!-- Trigger Button -->
-<button id="openWishlistModal" class="bg-teal-500 text-white py-2 px-4 rounded-md">Öppna Önskelista</button>
+<button id="openWishlistModal" class="bg-teal-500 text-white py-2 px-4 rounded-md">Att köpa</button>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {

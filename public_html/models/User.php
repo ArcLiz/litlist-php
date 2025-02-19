@@ -101,7 +101,7 @@ class User
         $this->display_name = htmlspecialchars(strip_tags($this->display_name));
         $this->avatar = htmlspecialchars(strip_tags($this->avatar));
         $this->email = htmlspecialchars(strip_tags($this->email));
-        $this->bio = htmlspecialchars($this->bio);
+        $this->bio = htmlspecialchars(strip_tags($this->bio));
 
         $stmt->bind_param("ssssi", $this->display_name, $this->avatar, $this->email, $this->bio, $this->id);
 

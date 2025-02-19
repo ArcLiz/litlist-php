@@ -42,7 +42,7 @@ if (!$profile_user) {
 }
 
 // Hämta böcker baserat på profil-ID
-$booksResult = $libraryController->getAllBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$booksResult = $libraryController->getAllLibraryBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
 $totalBooks = $libraryController->getTotalBooksByUser($profile_id, $searchTerm);
 $totalPages = ceil($totalBooks / $limit);
 
@@ -66,8 +66,8 @@ $guestbook = new GuestbookMessage($conn);
 $messages = $guestbook->getMessagesForUser($receiver_id);
 
 // READ BOOKS
-$booksResult = $readController->getAllReadBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
-$booksInYear = $readController->getBooksReadThisYear($profile_id);
+$readBooksResult = $readController->getAllReadBooksByUser($profile_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$readBooksInYear = $readController->getBooksReadThisYear($profile_id);
 
 $query = "SELECT title, date_finished FROM library_read WHERE user_id = ?";
 $stmt = $conn->prepare($query);
@@ -107,12 +107,12 @@ include '../components/header.php';
             </div>
             <div class="w-full grid grid-cols-2 gap-4">
                 <div class="border p-2 md:p-4 bg-white/50 shadow-lg flex justify-center items-center">
-                    <h2 class="text-xl md:text-2xl font-bold text-teal-500 text-center">Önskelista</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-teal-500 text-center">Inköpslista</h2>
                 </div>
 
                 <?php if (empty($wishlist)): ?>
                     <div class="col-span-2">
-                        <p>Du har inga böcker i din önskelista ännu.</p>
+                        <p>Inköpslistan är tom.</p>
                     </div>
                 <?php else: ?>
                     <?php foreach ($wishlist as $book): ?>
@@ -199,7 +199,7 @@ include '../components/header.php';
                     <div class="border-b-4 border-teal-700 border-lg rounded-lg px-3">
                         <?php if ($booksResult->num_rows > 0): ?>
                             <div class="book-container flex flex-wrap gap-1 pb-1">
-                                <?php while ($row = $booksResult->fetch_assoc()): ?>
+                                <?php while ($row = $readBooksResult->fetch_assoc()): ?>
                                     <!-- Bokbakgrund baserat på rating -->
                                     <?php
                                     $rating = $row['rating'];

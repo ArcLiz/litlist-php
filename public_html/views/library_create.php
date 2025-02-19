@@ -202,18 +202,6 @@ include '../components/header.php';
                 <img src="../uploads/book_covers/<?= $book->cover_image ?>" alt="Cover Image"
                     class="max-w-[120px] h-auto rounded-md mx-auto" id="currentImage">
 
-                <div class="mt-4 text-center">
-                    <button type="button" onclick="rotateImage(-90)"
-                        class="text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-md">Rotera Vänster</button>
-                    <button type="button" onclick="rotateImage(90)"
-                        class="text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-md">Rotera Höger</button>
-                </div>
-
-                <!-- Canvas för rotering -->
-                <canvas id="imageCanvas" class="mx-auto mt-4" style="max-width: 120px;"></canvas>
-
-                <input type="hidden" name="rotated_cover_image" id="rotated_cover_image">
-
             <?php } else { ?>
                 <p class="mt-2 text-sm text-red-500 text-center">Nuvarande omslagsbild saknas</p>
                 <img src="../uploads/book_covers/nocover.png" alt="No Cover Image"

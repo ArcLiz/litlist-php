@@ -91,17 +91,17 @@ include '../components/header.php';
                 <p class="text-center">
                     <?php echo htmlspecialchars($user_user); ?> har <?php echo $totalBooks ?> böcker
                     registrerade.<br><br>
-                    <?php echo htmlspecialchars($user_bio); ?>
+                    <?php echo html_entity_decode($user_bio); ?>
                 </p>
             </div>
             <div class="w-full grid grid-cols-2 gap-4">
                 <div class="border p-2 md:p-4 bg-white/50 shadow-lg flex justify-center items-center">
-                    <h2 class="text-xl md:text-2xl font-bold text-teal-500 text-center">Önskelista</h2>
+                    <h2 class="text-xl md:text-2xl font-bold text-teal-500 text-center">Inköpslista</h2>
                 </div>
 
                 <?php if (empty($wishlist)): ?>
                     <div class="col-span-2">
-                        <p>Du har inga böcker i din önskelista ännu.</p>
+                        <p>Du har inga böcker i din inköpslista ännu.</p>
                     </div>
                 <?php else: ?>
                     <?php foreach ($wishlist as $book): ?>

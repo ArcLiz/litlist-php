@@ -10,12 +10,11 @@ class LibraryController
         $this->conn = $db;
     }
 
-    public function getAllBooksByUser($user_id, $offset = 0, $limit = 25, $searchTerm = '', $sortBy = 'title', $sortOrder = 'ASC')
+    public function getAllLibraryBooksByUser($user_id, $offset = 0, $limit = 25, $searchTerm = '', $sortBy = 'title', $sortOrder = 'ASC')
     {
         $book = new Book($this->conn);
         $book->user_id = $user_id;
 
-        // Kontrollera om användaren ingår i ett hushåll
         $householdQuery = "SELECT household_id FROM auth_users WHERE id = ?";
         $householdStmt = $this->conn->prepare($householdQuery);
         $householdStmt->bind_param("i", $user_id);
@@ -23,26 +22,37 @@ class LibraryController
         $householdResult = $householdStmt->get_result();
         $household_id = $householdResult->fetch_assoc()['household_id'] ?? null;
 
-        // Bygg SQL-query baserat på om användaren ingår i ett hushåll
+        $allowedSortColumns = ['title', 'author', 'genre', 'series', 'series_number', 'location'];
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'title';
+        }
+
+        $sortOrder = strtoupper($sortOrder);
+        if (!in_array($sortOrder, ['ASC', 'DESC'])) {
+            $sortOrder = 'ASC';
+        }
+
         $query = "SELECT * FROM " . $book->table_name . " WHERE ";
         if ($household_id) {
-            // Använd hushållets böcker
             $query .= "household_id = ?";
         } else {
-            // Använd användarens egna böcker
             $query .= "user_id = ?";
         }
 
-        // Lägg till sökvillkor
         if ($searchTerm) {
             $query .= " AND (title LIKE ? OR author LIKE ? OR series LIKE ?)";
         }
 
-        $query .= " ORDER BY $sortBy $sortOrder LIMIT ?, ?";
+        if ($searchTerm) {
+            $query .= " ORDER BY author ASC, series ASC, series_number ASC, title ASC";
+        } else {
+            $query .= " ORDER BY $sortBy $sortOrder";
+        }
+
+        $query .= " LIMIT ?, ?";
 
         $stmt = $this->conn->prepare($query);
 
-        // Bind parametrar baserat på om vi använder household_id eller user_id
         if ($searchTerm) {
             $searchTerm = "%$searchTerm%";
             if ($household_id) {
@@ -61,6 +71,8 @@ class LibraryController
         $stmt->execute();
         return $stmt->get_result();
     }
+
+
 
     public function getBookDetails($book_id)
     {

@@ -20,7 +20,6 @@
                             class="h-[40px] mx-auto md:mx-0"></a>
                 </div>
             </div>
-
         </div>
     </footer>
 </div>

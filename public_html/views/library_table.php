@@ -17,7 +17,7 @@ $sortOrder = isset($_GET['order']) ? $_GET['order'] : 'ASC';
 $libraryController = new LibraryController($conn);
 
 // Fetching books based on user ID, search, and sort criteria
-$booksResult = $libraryController->getAllBooksByUser($user_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
+$booksResult = $libraryController->getAllLibraryBooksByUser($user_id, $offset, $limit, $searchTerm, $sortBy, $sortOrder);
 $totalBooks = $libraryController->getTotalBooksByUser($user_id, $searchTerm);
 $totalPages = ceil($totalBooks / $limit);
 
